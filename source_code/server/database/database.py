@@ -81,6 +81,5 @@ class Database:
         return self._db_connection.get_connection()
 
 
-# Usage
 mysql_connection = MySQLDatabaseConnection(Config)
 db = Database(mysql_connection)
