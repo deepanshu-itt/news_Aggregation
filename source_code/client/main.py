@@ -40,6 +40,8 @@ def handle_user_type():
 
 def handle_user_login():
     user_data = Authentication.login(news_api_client)
+    print("hi")
+    print(user_data)
     if user_data:
         set_current_user(user_data)
         handle_user_type()
