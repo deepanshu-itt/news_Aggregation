@@ -1,7 +1,7 @@
 from news_api import NewsAPIClient
 from auth import Authentication
-from admin import AdminMenu
-from user import UserMenu
+from admin_client.admin import AdminMenu
+from user_client.user import UserService
 
 news_api_client = NewsAPIClient()
 current_user = None
@@ -32,7 +32,7 @@ def handle_user_type():
         admin_menu = AdminMenu(news_api_client, get_current_user, set_current_user)
         admin_menu.run_menu()
     else:
-        user_menu = UserMenu(news_api_client, get_current_user, set_current_user)
+        user_menu = UserService(news_api_client, get_current_user, set_current_user)
         user_menu.run_menu()
 
     return
@@ -40,8 +40,6 @@ def handle_user_type():
 
 def handle_user_login():
     user_data = Authentication.login(news_api_client)
-    print("hi")
-    print(user_data)
     if user_data:
         set_current_user(user_data)
         handle_user_type()

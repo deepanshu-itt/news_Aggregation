@@ -6,9 +6,9 @@ class CategoryRepository:
         self._db = db
 
     def create(self, name: str) -> Category | None:
-        query = "INSERT INTO categories (name) VALUES (%s)"
+        query = "INSERT INTO categories (name, is_hidden) VALUES (%s)"
         try:
-            category_id = self._db.execute_query(query, (name,), commit=True)
+            category_id = self._db.execute_query(query, (name, False), commit=True)
             if category_id:
                 return Category(category_id, name)
         except Exception as e:
@@ -36,4 +36,12 @@ class CategoryRepository:
     def get_category_id(self, name: str) -> int | None:
         query = "SELECT id FROM categories WHERE name = %s"
         data = self._db.execute_query(query, (name,), fetch_one=True)
+        return data['id'] if data else None
+
+    
+    def hideCategory(self, category_id: int):
+        query = "update categories SET is_hidden = 1 WHERE id = %s"
+        data = self._db.execute_query(query, (category_id,), fetch_one=True)
+        print(data)
+        print("Executed")
         return data['id'] if data else None

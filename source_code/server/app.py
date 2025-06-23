@@ -1,7 +1,11 @@
 import sys
 from database.database import db
-from main import create_app
 from scheduler import start_scheduler
+from config import Config
+import unittest
+from app_utils import load_external_server_keys_into_app_config
+
+from main import create_app
 
 app = create_app()
 
@@ -11,7 +15,12 @@ if not db_instance:
     sys.exit(1)
 
 
+
 if __name__ == '__main__':
-    
-    start_scheduler(app.config)
+    # tests_passed = unittest.TextTestRunner().run(
+    #     unittest.defaultTestLoader.discover("tests")
+    # ).wasSuccessful()
+
+    # if tests_passed:
+    # start_scheduler(app.config)
     app.run(debug=True, host='0.0.0.0', port=5000)

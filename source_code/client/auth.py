@@ -1,15 +1,24 @@
+import requests
+import getpass
 class Authentication:
+    def __init__(self):
+        self.session = requests.Session()
     
     @staticmethod
     def login(api_client):
         print("\n--- Login ---")
         email = Authentication.__get_valid_email()
-        password = input("Enter your password: ")
+        password = getpass.getpass("Enter your password: ")
+
         response = api_client.make_request('POST', 'auth/login', {'email': email, 'password': password})
-        Authentication.__check_response(response,"Login failed.")
-        print(response)
-        return response["user"]
-        
+
+        if response and response.get('success'):
+            print(response['message'])
+            return response['user']
+        else:
+            print("Login failed.")
+            return None
+    
     
     @staticmethod
     def logout(set_current_user_callback):
@@ -31,7 +40,7 @@ class Authentication:
             'password': password
         })
 
-        Authentication.__check_response(response,"Sign up failed.")
+        Authentication.__check_response(response)
 
 
     def __get_valid_username():
@@ -72,10 +81,10 @@ class Authentication:
         return password
 
 
-    def __check_response(response,operation):
+    def __check_response(response):
         if response and response.get('success'):
             print(response['message'])
             return True
         else:
-            print(operation)
+            print("Sign up failed.")
             return False

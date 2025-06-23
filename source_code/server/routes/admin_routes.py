@@ -1,7 +1,9 @@
-from flask import Blueprint, request, jsonify 
+from flask import Blueprint, request, jsonify, current_app
 from repository.mysql_external_server_repository import MySQLExternalServerRepository
 from services.category_service import CategoryService
 from routes.auth_routes import admin_required
+from repository.report_article_repository import ReportArticleRepository
+from services.report_service import ArticleReportService
 category_service = CategoryService()
 
 admin_bp = Blueprint('admin_bp', __name__)
@@ -93,3 +95,40 @@ def get_external_server_details():
 
     except Exception as e:
         return jsonify({"success": False, "message": f"Error retrieving server details: {str(e)}"}), 500
+
+
+@admin_bp.route('/hide_article/<int:article_id>', methods=['GET'])
+def hide_article(article_id):
+    token = request.args.get("token")
+    if token != current_app.config['SECRET_ADMIN_TOKEN']:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    success = ReportArticleRepository().hide_article(article_id)
+    if success:
+        return jsonify({"message": f"Article {article_id} hidden Successfully"}), 200
+    return jsonify({"error": "Article not found"}), 404
+
+
+@admin_bp.route('/hide_article/<int:category_id>', methods=['POST'])
+def hide_article_by_category(category_id):
+    try:
+        service = ArticleReportService()
+        service.block_article_by_category(category_id)
+        return jsonify({"success": True, "message": f"Articles of this category hidden Successfully"}), 200
+    
+    except Exception as error:
+        print(error)
+        return jsonify({"success": False, "message": f"Block Articles By Category Operation Failed"}), 500
+
+
+# @admin_bp.route('/hide_article/keywords', methods=['POST'])
+# def hide_article_by_keywords(category_id):
+#     try:
+#         service = ArticleReportService()
+#         service.block_article_by_category(category_id)
+#         return jsonify({"success": True, "message": f"Articles of this category hidden Successfully"}), 200
+    
+#     except Exception as error:
+#         print(error)
+#         return jsonify({"success": False, "message": f"Block Articles By Category Operation Failed"}), 500
+    

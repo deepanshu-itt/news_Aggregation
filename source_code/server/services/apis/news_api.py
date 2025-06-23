@@ -1,4 +1,4 @@
-from dto.api_request import APIRequest
+from dto.api_request_dto import APIRequest
 import requests
 from datetime import datetime
 from typing import List, Optional
@@ -14,8 +14,9 @@ class NewsAPIOrg(INewsAPI):
         params = self.__prepare_params(request_data)
 
         try:
-            return self.__get_data_from_api(url,params)
-        except requests.exceptions.RequestException:
+            return self.__get_data_from_api(url,params, request_data)
+        except requests.exceptions.RequestException as error:
+            print(error)
             return []
 
     
@@ -38,11 +39,9 @@ class NewsAPIOrg(INewsAPI):
     
     
     def __get_data_from_api(self,url,params,request_data: APIRequest):
-        
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
-
         return [
                 {
                     "title": article.get("title"),

@@ -1,6 +1,6 @@
 from typing import List
 from repository.mysql_external_server_repository import MySQLExternalServerRepository
-from dto.api_request import APIRequest
+from dto.api_request_dto import APIRequest
 from services.apis.news_api import NewsAPIOrg
 from services.apis.the_news_api import TheNewsAPICom
 
@@ -33,9 +33,8 @@ class ExternalAPIManager:
 
         articles = []
         repository = MySQLExternalServerRepository()
-
         for name, service in self.api_services.items():
-            try:
+            try:   
                 request_data = APIRequest(
                     base_url=service.base_url,
                     api_key=service.api_key,

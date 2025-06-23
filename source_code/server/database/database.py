@@ -26,7 +26,10 @@ class MySQLDatabaseConnection(IDatabaseConnection):
                 host=self._config.MYSQL_HOST,
                 user=self._config.MYSQL_USER,
                 password=self._config.MYSQL_PASSWORD,
-                database=self._config.MYSQL_DB
+                database=self._config.MYSQL_DB,
+                ssl_disabled=True,
+                autocommit=True,
+                
             )
             if self._connection.is_connected():
                 print(f"Connected to MySQL database: {self._config.MYSQL_DB}")
@@ -81,5 +84,6 @@ class Database:
         return self._db_connection.get_connection()
 
 
+# Usage
 mysql_connection = MySQLDatabaseConnection(Config)
 db = Database(mysql_connection)

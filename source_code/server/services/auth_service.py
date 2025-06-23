@@ -1,6 +1,7 @@
 # from models.user import User
 from repository.user_repository import UserRepository
 from werkzeug.security import check_password_hash
+
 class AuthService:
     @staticmethod
     def register_user(username, email, password):

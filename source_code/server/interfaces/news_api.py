@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dto.api_request import APIRequest
+from dto.api_request_dto import APIRequest
 from typing import List
 
 

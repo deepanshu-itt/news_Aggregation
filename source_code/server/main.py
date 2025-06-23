@@ -1,20 +1,35 @@
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
-
+from routes.user_routes import user_bp
+from routes.user_like_routes import article_reaction_bp
 from config import Config
 import sys
 from flask import Flask, jsonify, session
+from app_utils import load_external_server_keys_into_app_config
+from flask_mail import Mail
+
 
 def create_app():
     app = Flask(__name__)
+    mail = Mail()
+    
     app.config.from_object(Config)
 
     if not app.config.get('SECRET_KEY'):
         print("FATAL: SECRET_KEY is not set in .env or config.py. Please generate one and set it.", file=sys.stderr)
         sys.exit(1)
-        
+
+
+    # @admin_bp.after_request
+    # def refresh_admin_config(response):
+    #     load_external_server_keys_into_app_config(app.config)
+    #     return response
+
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
+    app.register_blueprint(user_bp, url_prefix='/api/user')
+    app.register_blueprint(article_reaction_bp, url_prefix='/api/user')
+
 
     @app.route('/')
     def home():

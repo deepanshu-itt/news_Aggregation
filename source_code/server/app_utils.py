@@ -1,8 +1,9 @@
-from models.external_server import ExternalServer
+from repository.mysql_external_server_repository import MySQLExternalServerRepository
 
 def load_external_server_keys_into_app_config(flask_app_config):
     try:
-        external_servers = ExternalServer.get_all()
+        external_api_manager = MySQLExternalServerRepository()
+        external_servers = external_api_manager.get_all()
         if not external_servers:
             return
 

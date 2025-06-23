@@ -1,4 +1,4 @@
-from dto.api_request import APIRequest
+from dto.api_request_dto import APIRequest
 import requests
 from datetime import datetime
 from typing import List, Optional

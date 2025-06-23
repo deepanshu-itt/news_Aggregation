@@ -3,34 +3,38 @@ from repository.news_article_repository import NewsArticleRepository
 from repository.category_repository import CategoryRepository
 from services.external_api_manager import ExternalAPIManager
 from services.category_service import CategoryService
-from database.database import db
+from services.notification_service import NotificationService
+from repository.saved_articles_repository import SavedArticleRepository
+from database.database import MySQLDatabaseConnection,Database 
 from dto.news_article_dto import NewsArticleDto
-from dto.api_request import APIRequest
-
-
+from config import Config
 news_api_manager = ExternalAPIManager()
 category_service = CategoryService()
-# notification_service = NotificationService()
+notification_service = NotificationService()
 
 
 class NewsService:
     @staticmethod
     def fetch_and_store_news(app_config):
         print(f"[{datetime.now()}] Starting news fetch and store process...")
-        category_repository = CategoryRepository(db = db)
+        mysql_connection = MySQLDatabaseConnection(Config)
+        local_db = Database(mysql_connection)
+        category_repository = CategoryRepository(db = local_db)
         existing_categories = {c.name.lower(): c.id for c in category_repository.get_all()}
         articles_from_apis = []
-        from_date_filter = datetime.now() - timedelta(hours=4)
-
+        from_date_filter = datetime.now() - timedelta(days=1)
+        
         for cat_name in existing_categories:
             category_label = cat_name or "general_fetch"
             try:
                 data = news_api_manager.get_news_from_all_sources(
                     app_config=app_config,
-                    api_request_data = APIRequest(
-                        category =cat_name,
-                        from_date = from_date_filter
-                    )
+                    api_request_data = {
+                        "query" : None,
+                        "category" :cat_name,
+                        "from_date" : from_date_filter
+                        
+                    }
                 )
                 articles_from_apis.extend(data)
                 print(f"Fetched {len(data)} articles for category: {category_label}" )
@@ -98,22 +102,51 @@ class NewsService:
                 raw_data=article_data.get('raw_data', {})
                 )
             )
-
+            print(new_articles_count)
             if new_article:
                 new_articles_count += 1
-
+                # new_article_ids_stored.append(new_article.id)
+                # newly_stored_articles_map[new_article.id] = new_article
 
         print(f"[{datetime.now()}] Stored {new_articles_count} new articles.")
         
+        if new_articles_count > 0:
+            print(f"[{datetime.now()}] Recorded system notification for {new_articles_count} new articles.")
+
+            notification_service.send_daily_digests(app_config)
 
 
     @staticmethod
     def get_headlines_today(start_date =str(date.today()), end_date =str(date.today()), category_name = None):
         category_id = None
         news_Article_manager = NewsArticleRepository()
-        category_repository= CategoryRepository(db = db)
+        mysql_connection = MySQLDatabaseConnection(Config)
+        local_db = Database(mysql_connection)
+        category_repository = CategoryRepository(db = local_db)
         if category_name:
-            category = category_repository.find_by_name(category_name)
+            category = category_repository.find_by_name(category_name.lower())
             if category:
                 category_id = category.id
         return news_Article_manager.get_by_date_and_category(start_date, end_date, category_id)
+
+   
+   
+    @staticmethod
+    def search_articles(query):
+        news_Article_manager = NewsArticleRepository()
+        return news_Article_manager.search_by_keyword(query)
+
+
+    @staticmethod
+    def save_article_for_user(user_id, article_id):
+        news_Article_manager = NewsArticleRepository()
+        saved_article_manager = SavedArticleRepository()
+        if news_Article_manager.find_by_id(article_id):
+            return saved_article_manager.create(user_id, article_id)
+        return None
+    
+    
+    @staticmethod
+    def get_saved_articles_for_user(user_id):
+        news_Article_manager = NewsArticleRepository()
+        return news_Article_manager.get_saved_by_user(user_id)
