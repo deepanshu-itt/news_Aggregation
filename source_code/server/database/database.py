@@ -27,7 +27,7 @@ class MySQLDatabaseConnection(IDatabaseConnection):
                 user=self._config.MYSQL_USER,
                 password=self._config.MYSQL_PASSWORD,
                 database=self._config.MYSQL_DB,
-                ssl_disabled=True,
+                # ssl_disabled=True,
                 autocommit=True,
                 
             )

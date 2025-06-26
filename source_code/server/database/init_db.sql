@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS news_aggregator_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS news_aggregator_db
 
 USE news_aggregator_db;
 
@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS categories (
     is_hidden BOOLEAN NOT NULL DEFAULT FALSE
 );
 
--- Table for Users
+
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Table for External API Servers (e.g., NewsAPI.org, TheNewsAPI.com)
+
 CREATE TABLE IF NOT EXISTS external_servers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS external_servers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Table for News Articles
+
 CREATE TABLE IF NOT EXISTS news_articles (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title TEXT NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS news_articles (
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
 
--- Table for Users' Saved Articles (Many-to-Many relationship)
+
 CREATE TABLE IF NOT EXISTS saved_articles (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS saved_articles (
 
 );
 
--- Table for User Notification Preferences
+
 CREATE TABLE IF NOT EXISTS user_notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL UNIQUE, 
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS user_notifications (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Populate initial categories (INSERT IGNORE is crucial here)
+
 INSERT IGNORE INTO categories (name) VALUES ('Business');
 INSERT IGNORE INTO categories (name) VALUES ('Entertainment');
 INSERT IGNORE INTO categories (name) VALUES ('Sports');
@@ -79,24 +79,24 @@ INSERT IGNORE INTO categories (name) VALUES ('Science');
 INSERT IGNORE INTO categories (name) VALUES ('Politics');
 INSERT IGNORE INTO categories (name) VALUES ('General');
 
--- Add a default admin user for testing (CHANGE PASSWORD IN PRODUCTION!)
+
 INSERT IGNORE INTO users (username, email, password_hash, role) VALUES
 ('admin', 'admin@example.com', '$2b$12$DqXyJmH0xYxN.2/C2.B.O.vG.m.0.k.E.W.O.v.m.0.k.E.W.O.v.m.0.k.E.W.O.v', 'admin');
--- Password for 'admin' user above is 'password' (hashed with Werkzeug.security)
--- Generate your own hash for production!
+-- Password for 'admin' user above is 'password' 
+
 
 
 
 CREATE TABLE IF NOT EXISTS email_notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    article_ids JSON NOT NULL,  -- renamed and changed to JSON
+    article_ids JSON NOT NULL,  
     message TEXT NOT NULL,
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     category_id INT,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id)
-    -- No FK for article_ids since it's now an array
+
 );
 
 CREATE TABLE IF NOT EXISTS article_reactions (
@@ -127,3 +127,12 @@ CREATE TABLE IF NOT EXISTS article_filters (
     keyword VARCHAR(255) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+CREATE INDEX idx_news_articles_published_at ON news_articles(published_at);
+CREATE INDEX idx_news_articles_is_hidden ON news_articles(is_hidden);
+CREATE INDEX idx_article_reactions_article_id ON article_reactions(article_id);
+CREATE INDEX idx_article_reactions_user_reaction ON article_reactions(user_id, reaction);
+CREATE INDEX idx_saved_articles_user_article ON saved_articles(user_id, article_id);
+CREATE INDEX idx_categories_id ON categories(id);
+CREATE INDEX idx_user_notifications_user_id ON user_notifications(user_id);

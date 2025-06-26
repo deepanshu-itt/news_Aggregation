@@ -72,10 +72,10 @@ class UserMenu:
 
         choice = input("Select an option: ").strip()
         if choice == str(len(categories) + 2):
-            return
+            return True
 
         selected = category_map.get(choice)
-        print(selected)
+        
         params = {'start_date': start_date, 'end_date': end_date}
         if selected:
             params['category'] = selected
@@ -87,6 +87,8 @@ class UserMenu:
         if articles:
             response = self.__article_interaction_loop()
             return response
+        
+        return True
 
     def __article_interaction_loop(self):
         response = True
