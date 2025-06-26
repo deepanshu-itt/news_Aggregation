@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from services.user_service import UserService
 from services.news_service import NewsService
 from services.report_service import ArticleReportService
@@ -93,23 +93,22 @@ def get_news():
     search_query = request.args.get('q')
     start = request.args.get('start_date')
     end =  request.args.get('end_date')
-
+    user_id = request.headers.get('X-User-Id')
+    article_filters = NewsService.create_article_filter(start, end, user_id)
     if search_query:
         articles = NewsService.search_articles(search_query)
     
     elif start != None  and end != None and category_name != None :
-        articles = NewsService.get_headlines_today(start_date=start,end_date= end,  category_name=category_name)
+        articles = NewsService.get_headlines_by_date_and_Category(article_filters, category_name = category_name)
     
     elif start != None  and end != None :
-        start = arrow.get(start).datetime
-        end = arrow.get(end).datetime
-        articles = NewsService.get_headlines_today(start_date=start,end_date= end)
-        
-    elif category_name:
-        articles = NewsService.get_headlines_today(category_name=category_name)
+        # start = arrow.get(start).datetime
+        # end = arrow.get(end).datetime
+        articles = NewsService.get_headlines_by_date_and_Category(article_filters)
     
     else:
-        articles = NewsService.get_headlines_today()
+        print("Invalid data for searching Articles")
+        jsonify({"success": False, "message": "Missing searching data."}), 403
     return jsonify({"success": True, "articles": [article.__dict__ for article in articles]}), 200
 
 

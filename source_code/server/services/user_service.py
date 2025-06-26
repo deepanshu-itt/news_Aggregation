@@ -30,7 +30,6 @@ class UserService:
     
     @staticmethod
     def get_user_email_notifications(user_id):
-
         email_notification_manager = EmailNotificationRepository()
         user_email_notifications = email_notification_manager.get_by_user(user_id)
         if user_email_notifications:

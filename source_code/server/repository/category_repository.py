@@ -42,6 +42,14 @@ class CategoryRepository:
     def hideCategory(self, category_id: int):
         query = "update categories SET is_hidden = 1 WHERE id = %s"
         data = self._db.execute_query(query, (category_id,), fetch_one=True)
-        print(data)
-        print("Executed")
+        query = "update news_articles set is_hidden =1 where category_id = %s"
+        data = self._db.execute_query(query, (category_id,), fetch_one=True)
+        return data['id'] if data else None
+    
+    
+    def unhideCategory(self, category_id: int):
+        query = "update categories SET is_hidden = 0 WHERE id = %s"
+        data = self._db.execute_query(query, (category_id,), fetch_one=True)
+        query = "update news_articles set is_hidden =0 where category_id = %s"
+        data = self._db.execute_query(query, (category_id,), fetch_one=True)
         return data['id'] if data else None

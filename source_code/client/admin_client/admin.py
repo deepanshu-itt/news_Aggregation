@@ -15,7 +15,10 @@ class AdminMenu:
         print("2. View external server's details (incl. API key)")
         print("3. Update/Edit external server's details")
         print("4. Add new News Category")
-        print("5. Logout")
+        print("5. Hide Articles For Category")
+        print("6. Unhide Articles For Category")
+        print("7. Add Keybord to block articles")
+        print("8. Logout")
 
 
     def run_menu(self):
@@ -32,6 +35,12 @@ class AdminMenu:
             elif choice == '4':
                 self._add_news_category()
             elif choice == '5':
+                self._hide_articles_by_category()
+            elif choice == '6':
+                self._unhide_articles_by_category()
+            elif choice == '7':
+                self._hide_articles_by_keywords()
+            elif choice == '8':
                 Authentication.logout(self.set_current_user)
                 break
             else:
@@ -128,17 +137,36 @@ class AdminMenu:
 
     def _add_news_category(self):
         print("\nAdd new News Category")
-        category_name = self._get_category()
-        print("here is")
-        print(category_name)
+        category_name = self._get_user_input("Enter the Category Name:-")
         response = self.api_client.make_request('POST', 'admin/categories', {'name': category_name}, current_user=self.get_current_user())
         self._print_response(response, "Failed to add new category.")
         
 
-    def _get_category(self):
-        category_name = None
-        category_name = input("Enter the new category name: ")
-        return category_name
+    def _hide_articles_by_category(self):
+        print("\nHide Articles By Category")
+        category_name = self._get_user_input("Enter the Category Name:-")
+        response = self.api_client.make_request('POST', f'admin/hide_category_article',{'name': category_name}, current_user=self.get_current_user())
+        self._print_response(response, "Failed to hide articles by category.")
+    
+    
+    def _unhide_articles_by_category(self):
+        print("\nUnHide Articles By Category")
+        category_name = self._get_user_input("Enter the Category Name:-")
+        response = self.api_client.make_request('POST', f'admin/unhide_category_article',{'name': category_name}, current_user=self.get_current_user())
+        self._print_response(response, "Failed to unhide articles by category.")
+    
+    
+    def _hide_articles_by_keywords(self):
+        print("\nHide Articles By Keywords")
+        keyword= self._get_user_input("Enter the Keyword:-")
+        response = self.api_client.make_request('POST', f'admin/hide_article/keywords',{'keyword': keyword}, current_user=self.get_current_user())
+        self._print_response(response, "Failed to add keyword")
+        
+    
+    def _get_user_input(self, message):
+        user_input = None
+        user_input = input(f"{message}")
+        return user_input
 
 
     def _print_response(self,response, operation):

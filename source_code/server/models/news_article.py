@@ -21,5 +21,5 @@ class NewsArticle:
         self.created_at = created_at if created_at else datetime.now()
         self.like_count = like_count
         self.dislike_count = dislike_count
-        self.is_hidden = is_hidden, 
+        self.is_hidden = is_hidden 
         self.report_count = report_count

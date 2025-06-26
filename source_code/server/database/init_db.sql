@@ -109,3 +109,21 @@ CREATE TABLE IF NOT EXISTS article_reactions (
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (article_id) REFERENCES news_articles(id)
 );
+
+
+CREATE TABLE IF NOT EXISTS article_reports (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  article_id INT NOT NULL,
+  reason TEXT,
+  reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (article_id) REFERENCES news_articles(id) ON DELETE CASCADE,
+  UNIQUE (user_id, article_id)
+);
+
+CREATE TABLE IF NOT EXISTS article_filters (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    keyword VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -5,8 +5,10 @@ from interfaces.news_article import INewsArticleRepository
 from datetime import datetime
 from typing import List, Optional
 from dto.news_article_dto import NewsArticleDto
+
+
 class NewsArticleRepository(INewsArticleRepository):
-    
+
     def _map_row_to_article(self, row) -> NewsArticle:
         if isinstance(row.get("raw_data"), str):
             try:
@@ -29,6 +31,10 @@ class NewsArticleRepository(INewsArticleRepository):
                 article.published_at, article.source, article.category_id, raw_data_json
             ), commit=True)
             article.id = article_id
+        
+            self.hide_by_category_table()
+            self.hide_by_keyword_table()
+
             return article
         
         except Exception as error:
@@ -69,7 +75,8 @@ class NewsArticleRepository(INewsArticleRepository):
         return [self._map_row_to_article(row) for row in rows] if rows else []
 
 
-    def get_by_date_and_category(self, start_date, end_date, category_id=None) -> List[NewsArticle]:
+    def get_by_date_range(self, start_date, end_date) -> List[NewsArticle]:
+        
         if isinstance(start_date, str):
             start_date = datetime.strptime(start_date.split(" ")[0], "%Y-%m-%d").date()
             end_date = datetime.strptime(end_date.split(" ")[0], "%Y-%m-%d").date()
@@ -86,13 +93,10 @@ class NewsArticleRepository(INewsArticleRepository):
             FROM news_articles na
             JOIN categories c ON na.category_id = c.id
             LEFT JOIN article_reactions ar ON na.id = ar.article_id
-            WHERE na.published_at BETWEEN %s AND %s
+            WHERE na.is_hidden != 1 AND na.published_at BETWEEN %s AND %s
         """
+        
         params = [start_dt, end_dt]
-
-        if category_id:
-            query += " AND na.category_id = %s"
-            params.append(category_id)
 
         query += """
             GROUP BY na.id 
@@ -101,6 +105,71 @@ class NewsArticleRepository(INewsArticleRepository):
 
         rows = db.execute_query(query, tuple(params), fetch_all=True)
         return [self._map_row_to_article(rows) for rows in rows] if rows else []
+    
+    
+    
+    # def get_by_date_and_category(self, start_date, end_date, user_id, category_id=None) -> List[NewsArticle]:
+        
+    #     if isinstance(start_date, str):
+    #         start_date = datetime.strptime(start_date.split(" ")[0], "%Y-%m-%d").date()
+    #         end_date = datetime.strptime(end_date.split(" ")[0], "%Y-%m-%d").date()
+
+    #     start_dt = datetime.combine(start_date, datetime.min.time())
+    #     end_dt = datetime.combine(end_date, datetime.max.time())
+
+    #     query = """
+    #         SELECT 
+    #             na.*, 
+    #             c.name AS category_name,
+    #             COALESCE(SUM(ar.reaction = 'like'), 0) AS like_count,
+    #             COALESCE(SUM(ar.reaction = 'dislike'), 0) AS dislike_count,
+
+    #             -- Relevance Score
+    #             (
+    #                 CASE 
+    #                     WHEN JSON_CONTAINS(un.category_preferences, JSON_QUOTE(c.name)) THEN 3
+    #                     ELSE 0
+    #                 END
+    #                 +
+    #                 CASE 
+    #                     WHEN JSON_CONTAINS(un.category_preferences, JSON_QUOTE(c.name)) AND 
+    #                         (na.title LIKE CONCAT('%', c.name, '%') OR na.description LIKE CONCAT('%', c.name, '%')) THEN 2
+    #                     ELSE 0
+    #                 END
+    #                 +
+    #                 CASE WHEN sa.article_id IS NOT NULL THEN 2 ELSE 0 END
+    #                 +
+    #                 CASE WHEN ar_filter.article_id IS NOT NULL THEN 1 ELSE 0 END
+    #             ) AS relevance_score
+
+    #         FROM news_articles na
+    #         JOIN categories c ON na.category_id = c.id
+    #         LEFT JOIN article_reactions ar ON na.id = ar.article_id
+    #         LEFT JOIN user_notifications un ON un.user_id = %s
+    #         LEFT JOIN saved_articles sa ON sa.article_id = na.id AND sa.user_id = %s
+    #         LEFT JOIN article_reactions ar_filter ON ar_filter.article_id = na.id AND ar_filter.user_id = %s AND ar_filter.reaction = 'like'
+
+    #         WHERE na.is_hidden != 1 AND na.published_at BETWEEN %s AND %s
+    #     """
+
+    #     # Parameter order matters!
+    #     params = [user_id, user_id, user_id, start_dt, end_dt]
+
+    #     if category_id:
+    #         query += " AND na.category_id = %s"
+    #         params.append(category_id)
+
+    #     query += """
+    #         GROUP BY na.id
+    #         ORDER BY relevance_score DESC, na.published_at DESC
+    #     """
+
+    #     rows = db.execute_query(query, tuple(params), fetch_all=True)
+    #     if rows:
+    #         for row in rows:
+    #             row.pop('relevance_score', None)
+    #         return [self._map_row_to_article(row) for row in rows]
+    #     return []
 
 
     def search_by_keyword(self, keyword: str) -> List[NewsArticle]:
@@ -114,7 +183,7 @@ class NewsArticleRepository(INewsArticleRepository):
         FROM news_articles na
         JOIN categories c ON na.category_id = c.id
         LEFT JOIN article_reactions ar ON na.id = ar.article_id
-        WHERE na.title LIKE %s OR na.description LIKE %s OR na.raw_data LIKE %s
+        WHERE na.is_hidden != 1 AND na.title LIKE %s OR na.description LIKE %s OR na.raw_data LIKE %s
         GROUP BY na.id
         ORDER BY na.published_at DESC
         """
@@ -134,10 +203,100 @@ class NewsArticleRepository(INewsArticleRepository):
         JOIN news_articles na ON sa.article_id = na.id
         JOIN categories c ON na.category_id = c.id
         LEFT JOIN article_reactions ar ON na.id = ar.article_id
-        WHERE sa.user_id = %s
+        WHERE na.is_hidden != 1 AND sa.user_id = %s 
         GROUP BY na.id
         ORDER BY sa.saved_at DESC
         """
         params = (user_id,)
         rows = db.execute_query(query, params, fetch_all=True)
         return [self._map_row_to_article(r) for r in rows] if rows else []
+
+
+    def hide_by_keyword_table(self):
+        query = """UPDATE news_articles
+                    SET is_hidden = 1
+                    WHERE EXISTS (
+                        SELECT 1
+                        FROM article_filters
+                        WHERE news_articles.title LIKE CONCAT('%', article_filters.keyword, '%')
+                    )"""
+        db.execute_query(query, fetch_one=True)
+
+
+    def hide_by_category_table(self):
+
+        query = """ UPDATE news_articles na
+                    JOIN categories c ON na.category_id = c.id
+                    SET na.is_hidden = 1
+                    WHERE c.is_hidden = 1
+                """
+        db.execute_query(query, fetch_one=True)
+
+    
+    def get_by_date_and_category(self, filters: dict) -> List[NewsArticle]:
+        start_dt, end_dt = self._normalize_date_range(filters["start_date"], filters["end_date"])
+        user_id = filters["user_id"]
+        category_id = filters.get("category_id")
+
+        query = """
+            SELECT 
+                na.*, 
+                c.name AS category_name,
+                COALESCE(SUM(ar.reaction = 'like'), 0) AS like_count,
+                COALESCE(SUM(ar.reaction = 'dislike'), 0) AS dislike_count,
+                (
+                    CASE WHEN JSON_CONTAINS(un.category_preferences, JSON_QUOTE(c.name)) THEN 3 ELSE 0 END
+                    +
+                    CASE 
+                        WHEN JSON_CONTAINS(un.category_preferences, JSON_QUOTE(c.name)) 
+                            AND (na.title LIKE CONCAT('%', c.name, '%') 
+                            OR na.description LIKE CONCAT('%', c.name, '%')) THEN 2
+                        ELSE 0 
+                    END
+                    +
+                    CASE WHEN sa.article_id IS NOT NULL THEN 2 ELSE 0 END
+                    +
+                    CASE WHEN ar_filter.article_id IS NOT NULL THEN 1 ELSE 0 END
+                ) AS relevance_score
+
+            FROM news_articles na
+            JOIN categories c ON na.category_id = c.id
+            LEFT JOIN article_reactions ar ON na.id = ar.article_id
+            LEFT JOIN user_notifications un ON un.user_id = %s
+            LEFT JOIN saved_articles sa ON sa.article_id = na.id AND sa.user_id = %s
+            LEFT JOIN article_reactions ar_filter ON ar_filter.article_id = na.id AND ar_filter.user_id = %s AND ar_filter.reaction = 'like'
+
+            WHERE na.is_hidden != 1 AND na.published_at BETWEEN %s AND %s
+        """
+
+        params = [user_id, user_id, user_id, start_dt, end_dt]
+
+        if category_id:
+            query += " AND na.category_id = %s"
+            params.append(category_id)
+
+        query += """
+            GROUP BY na.id
+            ORDER BY relevance_score DESC, na.published_at DESC
+        """
+
+        rows = db.execute_query(query, tuple(params), fetch_all=True)
+
+        if rows:
+            for row in rows:
+                row.pop('relevance_score', None)
+            return [self._map_row_to_article(row) for row in rows]
+        return []
+
+
+    def _normalize_date_range(self, start_date, end_date):
+        if isinstance(start_date, str):
+            start_date = datetime.strptime(start_date.split(" ")[0], "%Y-%m-%d").date()
+        if isinstance(end_date, str):
+            end_date = datetime.strptime(end_date.split(" ")[0], "%Y-%m-%d").date()
+
+        start_dt = datetime.combine(start_date, datetime.min.time())
+        end_dt = datetime.combine(end_date, datetime.max.time())
+        return start_dt, end_dt
+
+    

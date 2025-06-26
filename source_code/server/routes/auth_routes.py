@@ -27,20 +27,13 @@ def login():
         session['user_id'] = result['user']['id']
         session['username'] = result['user']['username']
         session['role'] = result['user']['role']
-        print(session)
-        print("hi")
     else:
         print("no session\n")
-        # os.environ['user_id'] =  str(result['user']['id'])
-        # os.environ['username'] = result['user']['username']
-        # os.environ['role'] = result['user']['role']
+
     return jsonify(result), status_code
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
-    # os.environ['user_id'] = None
-    # os.environ['username'] = None
-    # os.environ['role'] = None
     session.clear() 
     return jsonify({"success": True, "message": "Logged out successfully."}), 200
 

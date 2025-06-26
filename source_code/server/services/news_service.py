@@ -8,6 +8,8 @@ from repository.saved_articles_repository import SavedArticleRepository
 from database.database import MySQLDatabaseConnection,Database 
 from dto.news_article_dto import NewsArticleDto
 from config import Config
+from flask import session
+
 news_api_manager = ExternalAPIManager()
 category_service = CategoryService()
 notification_service = NotificationService()
@@ -20,18 +22,18 @@ class NewsService:
         mysql_connection = MySQLDatabaseConnection(Config)
         local_db = Database(mysql_connection)
         category_repository = CategoryRepository(db = local_db)
-        existing_categories = {c.name.lower(): c.id for c in category_repository.get_all()}
+        existing_categories = {category.name.lower(): category.id for category in category_repository.get_all()}
         articles_from_apis = []
         from_date_filter = datetime.now() - timedelta(days=1)
         
-        for cat_name in existing_categories:
-            category_label = cat_name or "general_fetch"
+        for category_name in existing_categories:
+            category_label = category_name or "general_fetch"
             try:
                 data = news_api_manager.get_news_from_all_sources(
                     app_config=app_config,
                     api_request_data = {
                         "query" : None,
-                        "category" :cat_name,
+                        "category" :category_name,
                         "from_date" : from_date_filter
                         
                     }
@@ -105,8 +107,6 @@ class NewsService:
             print(new_articles_count)
             if new_article:
                 new_articles_count += 1
-                # new_article_ids_stored.append(new_article.id)
-                # newly_stored_articles_map[new_article.id] = new_article
 
         print(f"[{datetime.now()}] Stored {new_articles_count} new articles.")
         
@@ -116,21 +116,33 @@ class NewsService:
             notification_service.send_daily_digests(app_config)
 
 
+    # @staticmethod
+    # def get_headlines_by_date(article_filters):
+    #     news_Article_manager = NewsArticleRepository()
+    #     article_filters = NewsService.create_article_filter(start_date, end_date)
+    #     result = news_Article_manager.get_by_date_and_category(article_filters)
+    #     return result
+
+    
+    
     @staticmethod
-    def get_headlines_today(start_date =str(date.today()), end_date =str(date.today()), category_name = None):
-        category_id = None
+    def get_headlines_by_date_and_Category(article_filters, category_name = None):
         news_Article_manager = NewsArticleRepository()
         mysql_connection = MySQLDatabaseConnection(Config)
         local_db = Database(mysql_connection)
         category_repository = CategoryRepository(db = local_db)
         if category_name:
             category = category_repository.find_by_name(category_name.lower())
-            if category:
-                category_id = category.id
-        return news_Article_manager.get_by_date_and_category(start_date, end_date, category_id)
+            article_filters["category_id"] = category.id
+            # if category:
+                
+            #     article_filters = NewsService.create_article_filter(start_date, end_date, category.id)
+
+        result = news_Article_manager.get_by_date_and_category(article_filters)
+        return result
 
    
-   
+    
     @staticmethod
     def search_articles(query):
         news_Article_manager = NewsArticleRepository()
@@ -150,3 +162,15 @@ class NewsService:
     def get_saved_articles_for_user(user_id):
         news_Article_manager = NewsArticleRepository()
         return news_Article_manager.get_saved_by_user(user_id)
+
+    
+    @staticmethod
+    def create_article_filter(start_date, end_date, user_id):
+
+        article_filters = {
+            "start_date": start_date,
+            "end_date": end_date,
+            "user_id": user_id
+        }
+            
+        return article_filters

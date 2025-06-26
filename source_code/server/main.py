@@ -6,12 +6,11 @@ from config import Config
 import sys
 from flask import Flask, jsonify, session
 from app_utils import load_external_server_keys_into_app_config
-from flask_mail import Mail
+
 
 
 def create_app():
     app = Flask(__name__)
-    mail = Mail()
     
     app.config.from_object(Config)
 

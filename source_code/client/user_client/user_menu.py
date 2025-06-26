@@ -13,21 +13,15 @@ class UserMenu:
         self.user_service = user_service
 
     def run_menu(self):
-        while True:
+        response = True
+        while True and response:
             self.__welcome_user()
             choice = print_menu("Main Menu", [
                 "Headlines", "Saved Articles", "Search", "Notifications", "Logout"
             ])
 
             if choice == '1':
-                # handle_headlines = Headlines(api_client=self.api_client,
-                #     get_user=self.get_user,
-                #     set_user=self.set_user,
-                #     article_service=self.article_service,
-                #     notification_service=self.notification_service,
-                #     user_service=self.user_service)
-                # handle_headlines.headlines_menu()
-                self.__headlines_menu()
+                response = self.__headlines_menu()
             elif choice == '2':
                 self.__saved_articles_menu()
             elif choice == '3':
@@ -49,17 +43,20 @@ class UserMenu:
             print("⚠️ User not logged in.")
 
     def __headlines_menu(self):
-        while True:
+        response = True
+        while True and response:
             choice = print_menu("Headlines", ["Today", "Date range", "Back"])
             if choice == '1':
-                self.__show_headlines("today", str(date.today()), str(date.today()))
+                response = self.__show_headlines("today", str(date.today()), str(date.today()))
             elif choice == '2':
                 start, end = get_date()
-                self.__show_headlines("range", start, end)
+                response = self.__show_headlines("range", start, end)
             elif choice == '3':
                 break
             else:
                 print("Invalid option.")
+        
+        return response
 
 
     def __show_headlines(self, timeframe, start_date, end_date):
@@ -88,16 +85,18 @@ class UserMenu:
         display_articles(articles)
 
         if articles:
-            self.__article_interaction_loop()
+            response = self.__article_interaction_loop()
+            return response
 
     def __article_interaction_loop(self):
+        response = True
         while True:
             choice = print_menu("Article Options", ["Back", "Logout", "Save Article", "Like/Dislike Article", "Report Article"])
             if choice == '1':
                 break
             elif choice == '2':
                 self.user_service.logout()
-                return
+                return False
             elif choice in ['3', '4']:
                 self.__handle_like_dislike()
                 
@@ -106,6 +105,7 @@ class UserMenu:
             else:
                 print("Invalid option.")
 
+        return response
     
     def __handle_like_dislike(self, choice):
         article_id = get_valid_article_id()

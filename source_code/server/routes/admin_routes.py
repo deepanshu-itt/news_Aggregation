@@ -9,7 +9,6 @@ category_service = CategoryService()
 admin_bp = Blueprint('admin_bp', __name__)
 
 
-
 @admin_bp.route('/external_servers', methods=['GET'])
 @admin_required
 def get_all_servers():
@@ -109,11 +108,13 @@ def hide_article(article_id):
     return jsonify({"error": "Article not found"}), 404
 
 
-@admin_bp.route('/hide_article/<int:category_id>', methods=['POST'])
-def hide_article_by_category(category_id):
+@admin_bp.route('/hide_category_article', methods=['POST'])
+def hide_article_by_category():
     try:
+        data = request.get_json()
+        category_name = data.get('name')
         service = ArticleReportService()
-        service.block_article_by_category(category_id)
+        service.block_article_by_category(category_name)
         return jsonify({"success": True, "message": f"Articles of this category hidden Successfully"}), 200
     
     except Exception as error:
@@ -121,14 +122,30 @@ def hide_article_by_category(category_id):
         return jsonify({"success": False, "message": f"Block Articles By Category Operation Failed"}), 500
 
 
-# @admin_bp.route('/hide_article/keywords', methods=['POST'])
-# def hide_article_by_keywords(category_id):
-#     try:
-#         service = ArticleReportService()
-#         service.block_article_by_category(category_id)
-#         return jsonify({"success": True, "message": f"Articles of this category hidden Successfully"}), 200
+
+@admin_bp.route('/unhide_category_article', methods=['POST'])
+def unhide_article_by_category():
+    try:
+        data = request.get_json()
+        category_name = data.get('name')
+        service = ArticleReportService()
+        service.unblock_article_by_category(category_name)
+        return jsonify({"success": True, "message": f"Articles of this category Unhidden Successfully"}), 200
     
-#     except Exception as error:
-#         print(error)
-#         return jsonify({"success": False, "message": f"Block Articles By Category Operation Failed"}), 500
+    except Exception as error:
+        print(error)
+        return jsonify({"success": False, "message": f"Unblock Articles By Category Operation Failed"}), 500
+
+
+@admin_bp.route('/hide_article/keywords', methods=['POST'])
+def hide_article_by_keywords():
+    try:
+        data = request.get_json()
+        keyword = data.get('keyword')
+        service = ArticleReportService()
+        service.block_article_by_keyword(keyword)
+        return jsonify({"success": True, "message": f"Articles related to this keyword will be hidden."}), 200
     
+    except Exception as error:
+        print(error)
+        return jsonify({"success": False, "message": f"Articles hidden Operation related to keyword Failed"}), 500

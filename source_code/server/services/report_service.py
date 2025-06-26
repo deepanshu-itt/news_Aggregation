@@ -15,18 +15,20 @@ class ArticleReportService:
             raise ValueError("Article not found")
         
         self.repo.add_report(user_id, article_id, reason)
-        result, status_code = self.repo.increment_report_count(article_id)
-        data = result.get_data(as_text=True) 
-        print(data)
-        # if article["report_count"]) + 1 >= self.threshold:
-        #     self.repo.hide_article(article_id)
-            
-        self._send_admin_email(article_id, reason)
+        data, status_code = self.repo.increment_report_count(article_id)
+        
+
+        if article.get("report_count") + 1 >= self.threshold:
+            self.repo.hide_article(article_id)
+            self._update_admin_article_hide_email(article_id)
+
+        else:
+            self._send_hide_article_admin_email(article_id, reason, article.get("report_count") + 1)
         
         return  data, status_code
 
 
-    def _send_admin_email(self, article_id, reason):
+    def _send_hide_article_admin_email(self, article_id, reason):
         
         hide_link = url_for('admin_bp.hide_article', article_id=article_id,
                             token=current_app.config['SECRET_ADMIN_TOKEN'], _external=True)
@@ -37,17 +39,45 @@ class ArticleReportService:
 
             Click below to hide the article:
             {hide_link}
+            
+            Thanks,
+            """
+        
+        email_send_manager = EmailSender(current_app.config)
+        email_send_manager.send_email("deepanshu.p@intimetec.com","Article Reported", msg_body)
+
+
+    def _update_admin_article_hide_email(self, article_id, article_report_count):
+        
+        msg_body = f"""
+            An article (ID: {article_id}) Has been Blocked.
+
+            Due to Article Reported limit ({article_report_count}) breached the article is automatically blocked for public view.
+            
+            Thanks,
             """
         
         email_send_manager = EmailSender(current_app.config)
         email_send_manager.send_email("deepanshu.p@intimetec.com","Article Reported", msg_body)
     
     
-    def block_article_by_category(self, category_id):
+    def block_article_by_category(self, category_name):
         category_manager = CategoryRepository(db)
-        admin_specified_category = category_manager.find_by_id(category_id)
+        admin_specified_category = category_manager.find_by_name(category_name)
         if not admin_specified_category:
             raise ValueError("Category Does not Exist.")
         
-        category_manager.hideCategory(category_id)
+        category_manager.hideCategory(admin_specified_category.id)
     
+    
+    def unblock_article_by_category(self, category_name):
+        category_manager = CategoryRepository(db)
+        admin_specified_category = category_manager.find_by_name(category_name)
+        if not admin_specified_category:
+            raise ValueError("Category Does not Exist.")
+        
+        category_manager.unhideCategory(admin_specified_category.id)
+    
+    
+    def block_article_by_keyword(self, keyword):
+        self.repo.hide_by_keyword(keyword)
