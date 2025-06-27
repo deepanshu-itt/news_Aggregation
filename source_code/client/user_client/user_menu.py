@@ -27,7 +27,7 @@ class UserMenu:
             elif choice == '3':
                 self.__search_menu()
             elif choice == '4':
-                self.__notifications_menu()
+                response = self.__notifications_menu()
             elif choice == '5':
                 self.user_service.logout()
                 break
@@ -47,10 +47,10 @@ class UserMenu:
         while True and response:
             choice = print_menu("Headlines", ["Today", "Date range", "Back"])
             if choice == '1':
-                response = self.__show_headlines("today", str(date.today()), str(date.today()))
+                response = self.__show_headlines(str(date.today()), str(date.today()))
             elif choice == '2':
                 start, end = get_date()
-                response = self.__show_headlines("range", start, end)
+                response = self.__show_headlines(start, end)
             elif choice == '3':
                 break
             else:
@@ -59,7 +59,7 @@ class UserMenu:
         return response
 
 
-    def __show_headlines(self, timeframe, start_date, end_date):
+    def __show_headlines(self, start_date, end_date):
         categories_resp = self.api_client.make_request('GET', 'user/categories', current_user=self.get_user())
         categories = categories_resp.get("categories", [])
         category_map = {'1': None}
@@ -156,7 +156,7 @@ class UserMenu:
                 break
             elif choice == '2':
                 self.user_service.logout()
-                return
+                return False
             elif choice == '3':
                 article_id = get_valid_article_id()
                 if article_id is not None:
@@ -190,19 +190,22 @@ class UserMenu:
             print("Search failed.")
 
     def __notifications_menu(self):
-        while True:
+        response = True
+        while True and response:
             choice = print_menu("Notifications", ["View", "Configure", "Back", "Logout"])
             if choice == '1':
                 self.__view_notifications()
             elif choice == '2':
-                self.__configure_notifications()
+                response = self.__configure_notifications()
             elif choice == '3':
-                return
+                return True
             elif choice == '4':
                 self.user_service.logout()
-                return
+                return False
             else:
                 print("Invalid option.")
+                
+        return True
 
     def __view_notifications(self):
         response = self.notification_service.get_notifications()
@@ -248,51 +251,134 @@ class UserMenu:
                 elif opt == len(categories) + 1:
                     self.__manage_keywords()
                 elif opt == len(categories) + 2:
-                    return
+                    return True
                 elif opt == len(categories) + 3:
                     self.user_service.logout()
-                    return
+                    return False
                 else:
                     print("Invalid option.")
             except ValueError:
                 print("Invalid input.")
+        
+        return True
 
     def __manage_keywords(self):
         prefs = self.notification_service.get_user_preferences()
-        keywords = [p['name'] for p in prefs['preferences'].get('category_preferences', [])]
-
-        print(f"\nCurrent Keywords: {', '.join(keywords) or 'None'}")
-        choice = print_menu("Manage Keywords", ["Add Keyword(s)", "Remove Keyword", "Back"])
+        category_prefs = self._extract_category_preferences(prefs)
         
-        category_name = input("Enter the Category For Keywords:-  ")
-
-        if choice == '1':
-            new_keywords = input("Enter comma-separated keywords: ").strip().lower().split(',')
-            new_keywords = [k.strip() for k in new_keywords if k.strip()]
-            resp = self.notification_service.update_keywords(category_name, new_keywords)
-            print(resp.get('message', 'Failed to add keywords.'))
-
-        elif choice == '2':
-            if not keywords:
-                print("No keywords to remove.")
-                return
-            print("\nKeywords:")
-            for idx, kw in enumerate(keywords, 1):
-                print(f"{idx}. {kw}")
-            to_remove = input("Enter number of keyword to remove: ").strip()
-            try:
-                idx = int(to_remove) - 1
-                if 0 <= idx < len(keywords):
-                    updated = keywords[:idx] + keywords[idx+1:]
-                    resp = self.notification_service.update_keywords(category_name, updated)
-                    print(resp.get('message', 'Failed to remove keyword.'))
-                else:
-                    print("Invalid keyword number.")
-            except ValueError:
-                print("Invalid input.")
-
-        elif choice == '3':
+        if not category_prefs:
+            print("no Categories Found")
             return
 
+        selected_category = self._select_category(category_prefs)
+        if not selected_category:
+            return
+
+        self._handle_category_action(selected_category)
+    
+    
+    def _extract_category_preferences(self, prefs):
+        return prefs['preferences'].get('category_preferences', [])
+
+    
+    def _select_category(self, categories):
+        self._print_category_list(categories)
+        try:
+            idx = int(input("Select a category number: ")) - 1
+            return categories[idx]
+        except (ValueError, IndexError):
+            print("Invalid category selection.")
+            return None
+    
+    
+    
+    def _print_category_list(self, categories):
+        print("\nAvailable Categories:")
+        for idx, cat in enumerate(categories, 1):
+            print(f"{idx}. {cat['name']}")
+    
+    
+    def _handle_category_action(self, category):
+        self._print_category_details(category)
+        choice = print_menu("Manage Keywords", ["Add Keyword(s)", "Remove Keyword(s)", "Disable Category", "Back"])
+
+        if choice == '1':
+            self._handle_add_keywords(category)
+        elif choice == '2':
+            self._handle_remove_keywords(category)
+        elif choice == '3':
+            self._handle_disable_category(category)
+    
+    
+    def _print_category_details(self, category):
+        keywords = category.get('keywords', [])
+        enabled = category.get('enabled', True)
+        print(f"\nSelected Category: {category['name']}")
+        print(f"Enabled: {'Yes' if enabled else 'No'}")
+        print(f"Current Keywords: {', '.join(keywords) if keywords else 'None'}")
+    
+    
+    def _handle_add_keywords(self, category):
+        new_keywords = self._get_keywords_input("Enter comma-separated keywords to add: ")
+        if not new_keywords:
+            print("No keywords entered.")
+            return
+        resp = self.notification_service.update_keywords(category['name'], new_keywords)
+        print(resp.get('message', 'Failed to add keywords.'))
+    
+    
+    
+    def _handle_remove_keywords(self, category):
+        keywords = category.get('keywords', [])
+        if not keywords:
+            print("No keywords to remove.")
+            return
+
+        self._print_keyword_list(keywords)
+        selected_keywords = self._get_selected_keywords(keywords)
+        if not selected_keywords:
+            print("No valid keywords selected.")
+            return
+
+        
+        resp = self.notification_service.delete_keyword(category['name'], selected_keywords)
+        print(resp.get('message', 'Failed to remove keywords.'))
+        
+    
+    
+    def _print_keyword_list(self, keywords):
+        print("\nKeywords:")
+        for idx, kw in enumerate(keywords, 1):
+            print(f"{idx}. {kw}")
+
+    
+    def _get_selected_keywords(self, keywords):
+        try:
+            indices = input("Enter keyword numbers to remove (comma-separated): ")
+            idx_list = [int(i.strip()) - 1 for i in indices.split(',')]
+            return [keywords[i] for i in idx_list if 0 <= i < len(keywords)]
+        except (ValueError, IndexError):
+            return []
+    
+    
+    def _get_keywords_input(self, prompt_msg):
+        raw = input(prompt_msg).strip().lower().split(',')
+        return [k.strip() for k in raw if k.strip()]
+
+    
+    def _handle_disable_category(self, category):
+        confirm = input(f"Disable '{category['name']}' and clear keywords? (y/n): ").strip().lower()
+        if confirm == 'y':
+            resp = self.notification_service.delete_keyword(category['name'], [])
+            print(resp.get('message', 'Failed to disable category.'))
         else:
-            print("Invalid option.")
+            print("Cancelled.")
+
+
+
+
+
+
+
+
+

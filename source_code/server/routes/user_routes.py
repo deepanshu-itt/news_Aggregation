@@ -122,12 +122,10 @@ def get_categories():
 def delete_user_keyword():
     user_id = request.headers.get('X-User-Id')
     data = request.get_json()
+    category_name = data.get('category_name') 
     keyword = data.get('keywords') if data else None
 
-    if not keyword:
-        return jsonify({"success": False, "message": "No keyword provided"}), 400
-
-    result, status_code = user_service.remove_notification_keyword(user_id, keyword)
+    result, status_code = user_service.remove_notification_keyword(user_id, category_name, keyword)
 
     return jsonify(result), status_code
 

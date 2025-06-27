@@ -9,8 +9,8 @@ class NotificationService:
     def update_keywords(self, category_name, keywords):
         return self.api_client.make_request('PUT', 'user/notifications', {'keywords': keywords, 'category_name': category_name }, current_user=self.get_user())
 
-    def delete_keyword(self, keyword):
-        return self.api_client.make_request('DELETE', 'user/notifications', {'keywords': keyword}, current_user=self.get_user())
+    def delete_keyword(self, category_name, keyword):
+        return self.api_client.make_request('DELETE', 'user/notifications', {'keywords': keyword, 'category_name': category_name}, current_user=self.get_user())
 
     def get_user_preferences(self):
         return self.api_client.make_request('GET', 'user/userpreferences', current_user=self.get_user())

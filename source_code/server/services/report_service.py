@@ -20,7 +20,7 @@ class ArticleReportService:
 
         if article.get("report_count") + 1 >= self.threshold:
             self.repo.hide_article(article_id)
-            self._update_admin_article_hide_email(article_id)
+            self._update_admin_article_hide_email(article_id, article.get("report_count") + 1)
 
         else:
             self._send_hide_article_admin_email(article_id, reason)
