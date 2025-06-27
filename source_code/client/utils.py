@@ -2,11 +2,13 @@ from datetime import datetime
 
 
 def check_articles(articles):
+    response = True
     if not articles:
         print("No articles found.")
-        return True
     else:
-        return False
+        response = False
+    
+    return response
 
 
 def display_articles(articles, page_size=10):
@@ -32,8 +34,13 @@ def show_article_batch(batch, start_index=1):
 
 
 def display_single_article(article, index):
-
     print(f"\n--- Article {index} ---")
+    print(f"Article Id: {article.get('id')}")
+    print(f"Title: {article.get('title', 'N/A')}")
+    
+
+
+def display_article_information(article: dict):
     print(f"Article Id: {article.get('id')}")
     print(f"Title: {article.get('title', 'N/A')}")
     print(f"Source: {article.get('source', 'N/A')}")
@@ -43,7 +50,7 @@ def display_single_article(article, index):
     print(f"URL: {article.get('url', 'N/A')}")
     print(f"Likes: {article.get('like_count')}")
     print(f"Dislikes: {article.get('dislike_count')}")
-
+    
 
 def format_published_date(published_at):
     response = None

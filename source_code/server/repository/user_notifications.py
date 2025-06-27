@@ -11,7 +11,8 @@ class UserNotificationRepository(IUserNotifications):
     
     def find_by_user_id(self, user_id: int) -> Optional[UserNotification]:
         query = "SELECT * FROM user_notifications WHERE user_id = %s"
-        row = db.execute_query(query, (user_id,), fetch_one=True)
+        cursor_params = CursorDto(query=query, params=(user_id,), fetch_one=True)
+        row = db.execute_query(cursor_params)
 
         if row:
             row['category_preferences'] = self._parse_category_preferences(row.get('category_preferences'))

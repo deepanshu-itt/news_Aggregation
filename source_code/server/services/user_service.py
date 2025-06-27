@@ -39,8 +39,7 @@ class UserService:
                     "user_id": email_notification.user_id,
                     "article_ids": email_notification.article_ids,
                     "message": email_notification.message,
-                    "sent_at": email_notification.sent_at,
-                    "category_id": email_notification.category_id
+                    "sent_at": email_notification.sent_at
                 }
                 for email_notification in user_email_notifications
             ]
