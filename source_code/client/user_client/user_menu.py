@@ -263,12 +263,13 @@ class UserMenu:
 
         print(f"\nCurrent Keywords: {', '.join(keywords) or 'None'}")
         choice = print_menu("Manage Keywords", ["Add Keyword(s)", "Remove Keyword", "Back"])
+        
+        category_name = input("Enter the Category For Keywords:-  ")
 
         if choice == '1':
             new_keywords = input("Enter comma-separated keywords: ").strip().lower().split(',')
             new_keywords = [k.strip() for k in new_keywords if k.strip()]
-            updated = list(set(keywords + new_keywords))
-            resp = self.notification_service.update_keywords(updated)
+            resp = self.notification_service.update_keywords(category_name, new_keywords)
             print(resp.get('message', 'Failed to add keywords.'))
 
         elif choice == '2':
@@ -283,7 +284,7 @@ class UserMenu:
                 idx = int(to_remove) - 1
                 if 0 <= idx < len(keywords):
                     updated = keywords[:idx] + keywords[idx+1:]
-                    resp = self.notification_service.update_keywords(updated)
+                    resp = self.notification_service.update_keywords(category_name, updated)
                     print(resp.get('message', 'Failed to remove keyword.'))
                 else:
                     print("Invalid keyword number.")

@@ -26,6 +26,7 @@ class UserNotificationRepository(IUserNotifications):
 
         try:
             preferences = json.loads(raw_json)
+            print(preferences)
             if isinstance(preferences, list):
                 return [
                     {
@@ -44,8 +45,6 @@ class UserNotificationRepository(IUserNotifications):
         self,
         user_id: int,
         user_email: str,
-        email_enabled: bool,
-        daily_digest_enabled: bool,
         category_preferences: List[int],
     ) -> UserNotification:
         existing = self.find_by_user_id(user_id)
@@ -54,20 +53,20 @@ class UserNotificationRepository(IUserNotifications):
         if existing:
             query = """
                 UPDATE user_notifications
-                SET email_enabled = %s, daily_digest_enabled = %s, category_preferences = %s
+                SET category_preferences = %s
                 WHERE user_id = %s
             """
-            cursor_params = CursorDto(query=query, params=(email_enabled, daily_digest_enabled, prefs_json, user_id), commit=True)
+            cursor_params = CursorDto(query=query, params=(prefs_json, user_id), commit=True)
             db.execute_query(cursor_params)
-            return UserNotification(existing.id, user_id, email_enabled, daily_digest_enabled, category_preferences, user_email)
+            return UserNotification(existing.id, user_id, category_preferences, user_email)
         else:
             query = """
-                INSERT INTO user_notifications (user_id, email_enabled, daily_digest_enabled, category_preferences)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO user_notifications (user_id, category_preferences, email)
+                VALUES (%s, %s, %s)
             """
-            cursor_params = CursorDto(query=query, params=(user_id, email_enabled, daily_digest_enabled, prefs_json), commit=True)
+            cursor_params = CursorDto(query=query, params=(user_id, prefs_json, user_email), commit=True)
             new_id = db.execute_query(cursor_params)
-            return UserNotification(new_id, user_id, email_enabled, daily_digest_enabled, category_preferences, user_email)
+            return UserNotification(new_id, user_id, category_preferences, user_email)
 
 
     def get_users_for_daily_digest(self) -> List[UserNotification]:
@@ -75,7 +74,6 @@ class UserNotificationRepository(IUserNotifications):
             SELECT un.*, u.email 
             FROM user_notifications un 
             JOIN users u ON un.user_id = u.id 
-            WHERE daily_digest_enabled = TRUE AND email_enabled = TRUE
         """
 
         cursor_params = CursorDto(query=query, fetch_all=True)

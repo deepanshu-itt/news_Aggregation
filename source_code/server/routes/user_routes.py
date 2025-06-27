@@ -40,11 +40,10 @@ def configure_user_preferences():
 def update_user_preferences():
     user_id = request.headers.get('X-User-Id')
     data = request.get_json()
-    email_enabled = data.get('email_enabled', True)
-    daily_digest_enabled = data.get('daily_digest_enabled', True) 
-    category_preferences = data.get('keywords') 
+    category_preferences = data.get('keywords') or []
+    category_name = data.get('category_name') 
     result, status_code = user_service.update_user_preferences(
-        user_id, email_enabled, daily_digest_enabled, category_preferences
+        user_id, category_name, category_preferences
     )
     return jsonify(result), status_code
 
@@ -102,8 +101,6 @@ def get_news():
         articles = NewsService.get_headlines_by_date_and_Category(article_filters, category_name = category_name)
     
     elif start != None  and end != None :
-        # start = arrow.get(start).datetime
-        # end = arrow.get(end).datetime
         articles = NewsService.get_headlines_by_date_and_Category(article_filters)
     
     else:

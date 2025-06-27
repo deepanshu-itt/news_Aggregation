@@ -62,8 +62,6 @@ CREATE TABLE IF NOT EXISTS saved_articles (
 CREATE TABLE IF NOT EXISTS user_notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL UNIQUE, 
-    email_enabled BOOLEAN DEFAULT TRUE,
-    daily_digest_enabled BOOLEAN DEFAULT FALSE,
     category_preferences JSON,
     email VARCHAR(255),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

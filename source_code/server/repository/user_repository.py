@@ -45,7 +45,7 @@ class UserRepository(IUser):
         return User(**data) if data else None
 
 
-    def remove_notification_keyword(self, userid, keyword):
+    def remove_notification_keyword(self, userid, category_name, keyword):
         result = None
         query = "SELECT category_preferences FROM user_notifications WHERE user_id = %s"
         cursor_params = CursorDto(query=query, params=(userid,), fetch_one=True)
