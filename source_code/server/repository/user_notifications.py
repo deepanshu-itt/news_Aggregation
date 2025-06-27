@@ -3,6 +3,7 @@ from database.database import db
 from typing import Optional, List
 from models.user_notification import UserNotification
 from interfaces.user_notifications import IUserNotifications
+from dto.cursor_dto import CursorDto
 
 
 class UserNotificationRepository(IUserNotifications):
@@ -55,14 +56,16 @@ class UserNotificationRepository(IUserNotifications):
                 SET email_enabled = %s, daily_digest_enabled = %s, category_preferences = %s
                 WHERE user_id = %s
             """
-            db.execute_query(query, (email_enabled, daily_digest_enabled, prefs_json, user_id), commit=True)
+            cursor_params = CursorDto(query=query, params=(email_enabled, daily_digest_enabled, prefs_json, user_id), commit=True)
+            db.execute_query(cursor_params)
             return UserNotification(existing.id, user_id, email_enabled, daily_digest_enabled, category_preferences, user_email)
         else:
             query = """
                 INSERT INTO user_notifications (user_id, email_enabled, daily_digest_enabled, category_preferences)
                 VALUES (%s, %s, %s, %s)
             """
-            new_id = db.execute_query(query, (user_id, email_enabled, daily_digest_enabled, prefs_json), commit=True)
+            cursor_params = CursorDto(query=query, params=(user_id, email_enabled, daily_digest_enabled, prefs_json), commit=True)
+            new_id = db.execute_query(cursor_params)
             return UserNotification(new_id, user_id, email_enabled, daily_digest_enabled, category_preferences, user_email)
 
 
@@ -73,7 +76,9 @@ class UserNotificationRepository(IUserNotifications):
             JOIN users u ON un.user_id = u.id 
             WHERE daily_digest_enabled = TRUE AND email_enabled = TRUE
         """
-        rows = db.execute_query(query, fetch_all=True)
+
+        cursor_params = CursorDto(query=query, fetch_all=True)
+        rows = db.execute_query(cursor_params)
         notifications = []
         for row in rows or []:
             row['category_preferences'] = self._parse_categories(row.get('category_preferences'))

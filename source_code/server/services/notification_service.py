@@ -6,7 +6,7 @@ from repository.category_repository import CategoryRepository
 from repository.user_notifications import UserNotificationRepository
 from services.email_format_service import EmailSender
 from dto.email_dto import EmailNotificationDto
-from services.email_builder import EmailBuilder
+from services.email_format_service import EmailContentFormatter
 from services.article_filter import ArticleFilter
 from database.database import MySQLDatabaseConnection,Database 
 from config import Config
@@ -34,15 +34,16 @@ class NotificationService:
 
     def send_digest_to_user(self, app_config, user_prefs: UserNotification, recent_articles):
         articles_for_user = self.article_filter.filter_articles(user_prefs, recent_articles)
-        print("articles for user")
         if not articles_for_user:
             print(f"No matching articles for user {user_prefs.email}.")
             return
         
+        subject = "Your last 4 Hours News Updates!"
+        body_lines = "Hi Geek, here are some recent news articles you might be interested in:\n\n"
+
         self.email_sender = EmailSender(app_config=app_config)
         articles_for_user = self.article_filter.filter_articles(user_prefs, recent_articles)
-        subject, body = EmailBuilder.build_email(articles_for_user)
-        print("send mail")
+        subject, body = EmailContentFormatter.build_email_content_from_articles(articles_for_user, body_lines)
 
         if self.email_sender.send_email(user_prefs.email, subject, body):
             article_ids = [article.id for article in articles_for_user]
@@ -53,13 +54,14 @@ class NotificationService:
         else:
             print(f"Failed to send updates to user {user_prefs.email}.")
 
+
     def send_daily_digests(self, app_config):
         print(f"[{datetime.now()}] Starting updates notification process...")
         users_for_digest = self.user_notification_repo.get_users_for_daily_digest()
 
         end_date = datetime.now()
         start_date = end_date - timedelta(days=7)
-        recent_articles = self.news_article_repo.get_by_date_and_category(
+        recent_articles = self.news_article_repo.get_by_date_range(
             start_date.strftime("%Y-%m-%d %H:%M:%S"), end_date.strftime("%Y-%m-%d %H:%M:%S")
         )
 
@@ -71,4 +73,3 @@ class NotificationService:
         for user_prefs in users_for_digest:
             self.send_digest_to_user(app_config, user_prefs, recent_articles)
         print(f"[{datetime.now()}] Quarterly updates notification process completed.")
-        

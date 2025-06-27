@@ -14,9 +14,7 @@ class ArticleFilter:
         for article in articles:
             for cat_pref in category_preferences:
                 cat_id = self.category_repo.get_category_id(cat_pref['name'])
-                print(cat_id , " ", article.category_id)
                 if not cat_id or article.category_id != cat_id:
-                    
                     continue
                 
                 keywords = cat_pref.get('keywords', [])

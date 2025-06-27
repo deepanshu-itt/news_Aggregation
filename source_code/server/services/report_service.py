@@ -1,4 +1,4 @@
-from flask import current_app, url_for, jsonify
+from flask import current_app, url_for
 from repository.report_article_repository import ReportArticleRepository
 from database.database import db
 from services.email_format_service import EmailSender
@@ -23,7 +23,7 @@ class ArticleReportService:
             self._update_admin_article_hide_email(article_id)
 
         else:
-            self._send_hide_article_admin_email(article_id, reason, article.get("report_count") + 1)
+            self._send_hide_article_admin_email(article_id, reason)
         
         return  data, status_code
 
@@ -49,7 +49,7 @@ class ArticleReportService:
 
     def _update_admin_article_hide_email(self, article_id, article_report_count):
         
-        msg_body = f"""
+        message_body = f"""
             An article (ID: {article_id}) Has been Blocked.
 
             Due to Article Reported limit ({article_report_count}) breached the article is automatically blocked for public view.
@@ -58,7 +58,7 @@ class ArticleReportService:
             """
         
         email_send_manager = EmailSender(current_app.config)
-        email_send_manager.send_email("deepanshu.p@intimetec.com","Article Reported", msg_body)
+        email_send_manager.send_email("deepanshu.p@intimetec.com","Article Reported", message_body)
     
     
     def block_article_by_category(self, category_name):

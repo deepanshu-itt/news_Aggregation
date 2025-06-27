@@ -129,8 +129,6 @@ class AdminMenu:
     def __add_news_category(self):
         print("\nAdd new News Category")
         category_name = self.__get_category()
-        print("here is")
-        print(category_name)
         response = self.api_client.make_request('POST', 'admin/categories', {'name': category_name}, current_user=self.get_current_user())
         self.__print_response(response, "Failed to add new category.")
         

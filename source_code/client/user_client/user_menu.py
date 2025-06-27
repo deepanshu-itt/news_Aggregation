@@ -100,7 +100,7 @@ class UserMenu:
                 self.user_service.logout()
                 return False
             elif choice in ['3', '4']:
-                self.__handle_like_dislike()
+                self.__handle_like_dislike(choice)
                 
             elif choice in ["5"]:
                 self.__handle_report_article()

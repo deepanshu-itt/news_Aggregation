@@ -5,8 +5,12 @@ from models.email_notifications import EmailNotification
 from dto.email_dto import EmailNotificationDto
 from database.database import MySQLDatabaseConnection,Database 
 from config import Config
+from dto.cursor_dto import CursorDto
+
 mysql_connection = MySQLDatabaseConnection(Config)
 db = Database(mysql_connection)
+
+
 class EmailNotificationRepository(IEmailNotificationRepository):
 
 
@@ -22,22 +26,24 @@ class EmailNotificationRepository(IEmailNotificationRepository):
 
 
     def create(self, notification: EmailNotificationDto) -> Optional[EmailNotification]:
+        result = None
         query = """
         INSERT INTO email_notifications (user_id, article_ids, message)
         VALUES (%s, %s, %s)
         """
+        
         try:
             article_ids_json = json.dumps(notification.article_ids)
-            notification_id = db.execute_query(
-                query,
-                (notification.user_id, article_ids_json, notification.message),
-                commit=True
-            )
+            cursor_params = CursorDto(query=query, params=(notification.user_id, 
+                                article_ids_json, notification.message),commit=True)
+            
+            notification_id = db.execute_query(cursor_params)
             notification.id = notification_id
-            return notification
-        except Exception as e:
-            print(f"Error creating email notification: {e}")
-            return None
+            result =  notification
+        except Exception as error:
+            print(f"Error creating email notification: {error}")
+        
+        return result
 
 
     def get_by_user(self, user_id: int) -> List[EmailNotification]:
@@ -47,11 +53,13 @@ class EmailNotificationRepository(IEmailNotificationRepository):
         WHERE user_id = %s
         ORDER BY sent_at DESC
         """
-        rows = db.execute_query(query, (user_id,), fetch_all=True)
+        cursor_params = CursorDto(query=query, params=(user_id,),fetch_all=True)
+        rows = db.execute_query(cursor_params)
         return [self._map_row_to_notification(row) for row in rows] if rows else []
 
 
     def delete(self, notification_id: int) -> bool:
         query = "DELETE FROM email_notifications WHERE id = %s"
-        result = db.execute_query(query, (notification_id,), commit=True)
+        cursor_params = CursorDto(query=query, params=(notification_id,),commit=True)
+        result = db.execute_query(cursor_params)
         return result is not None
