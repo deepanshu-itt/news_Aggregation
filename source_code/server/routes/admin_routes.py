@@ -16,11 +16,11 @@ def get_all_servers():
     mysql_external_server = MySQLExternalServerRepository()
     servers = mysql_external_server.get_all()
     filtered_servers = []
-    for s in servers:
+    for server in servers:
         filtered_servers.append({
-            "name": s.name,
-            "status": s.status,
-            "last_accessed": s.last_accessed
+            "name": server.name,
+            "status": server.status,
+            "last_accessed": server.last_accessed
         })
 
     return jsonify({
@@ -32,7 +32,6 @@ def get_all_servers():
 @admin_bp.route('/categories', methods=['POST'])
 @admin_required
 def add_category():
-    
     category = category_service.getCategories()
     data = request.get_json()
     category_name = data.get('name')
@@ -50,7 +49,7 @@ def add_category():
         "success": True,
         "message": response.to_dict()
     }), 200
-            
+
 
 @admin_bp.route('/external_servers/<int:server_id>/status', methods=['PUT'])
 @admin_required
@@ -120,7 +119,6 @@ def hide_article_by_category():
     except Exception as error:
         print(error)
         return jsonify({"success": False, "message": f"Block Articles By Category Operation Failed"}), 500
-
 
 
 @admin_bp.route('/unhide_category_article', methods=['POST'])

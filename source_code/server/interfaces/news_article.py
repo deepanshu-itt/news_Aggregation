@@ -19,16 +19,16 @@ class INewsArticleRepository(ABC):
 
 
     @abstractmethod
-    def get_articles(self, category_id=None, search_query=None, limit=0, offset=0) -> List[NewsArticle]: pass
+    def get_articles(self, category_id=None, search_query=None) -> List[NewsArticle]: pass
 
 
     @abstractmethod
-    def get_by_date_and_category(self, start_date, end_date, category_id=None, limit=0, offset=0) -> List[NewsArticle]: pass
+    def get_by_date_and_category(self, start_date, end_date, category_id=None) -> List[NewsArticle]: pass
 
 
     @abstractmethod
-    def search_by_keyword(self, keyword: str, limit=50, offset=0) -> List[NewsArticle]: pass
+    def search_by_keyword(self, keyword: str) -> List[NewsArticle]: pass
 
 
     @abstractmethod
-    def get_saved_by_user(self, user_id: int, limit=20, offset=0) -> List[NewsArticle]: pass
+    def get_saved_by_user(self, user_id: int) -> List[NewsArticle]: pass

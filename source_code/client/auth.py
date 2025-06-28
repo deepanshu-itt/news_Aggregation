@@ -1,11 +1,14 @@
 import requests
 import getpass
+from news_api import NewsAPIClient
+
+
 class Authentication:
     def __init__(self):
         self.session = requests.Session()
     
     @staticmethod
-    def login(api_client):
+    def login(api_client: NewsAPIClient):
         print("\n--- Login ---")
         email = Authentication.__get_valid_email()
         password = getpass.getpass("Enter your password: ")
@@ -71,9 +74,9 @@ class Authentication:
         while True:
             password = input("Enter password (min 8 chars, incl. upper, lower, digit, special): ")
 
-            if len(password) < 8 or not any(c.isupper() for c in password) or \
-            not any(c.islower() for c in password) or not any(c.isdigit() for c in password) or \
-            not any(not c.isalnum() for c in password):
+            if len(password) < 8 or not any(character.isupper() for character in password) or \
+            not any(character.islower() for character in password) or not any(character.isdigit() for character in password) or \
+            not any(not character.isalnum() for character in password):
                 print("Password must be at least 8 characters, contain uppercase, lowercase, digit, and special character.")
                 continue
             break

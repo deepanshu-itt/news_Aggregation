@@ -1,8 +1,9 @@
 from interfaces.article_reaction import IArticleReaction
 from database import database
+from dto.cursor_dto import CursorDto
 
 
-class ArticleReactionModel(IArticleReaction):
+class ArticleReactionRepository(IArticleReaction):
     def __init__(self, database_connection: database):
         self._db = database_connection
         
@@ -13,13 +14,20 @@ class ArticleReactionModel(IArticleReaction):
         VALUES (%s, %s, %s)
         ON DUPLICATE KEY UPDATE reaction = VALUES(reaction), reacted_at = CURRENT_TIMESTAMP
         """
-        self._db.execute_query(query, (user_id, article_id, reaction), commit=True)
+        cursor_params = CursorDto(query=query, params=(user_id, article_id, reaction), commit=True)
+        try:
+            self._db.execute_query(cursor_params)
+        except Exception as error:
+                print(f"Error creating category: {error}")
+
 
     def get_reaction_count(self, article_id: int, reaction: str) -> int:
         query = """
         SELECT COUNT(*) as count FROM article_reactions
         WHERE article_id = %s AND reaction = %s
         """
-        # return Category(**data) if data else None
-        return ArticleReactionModel(**self._db.execute_query(query, (article_id, reaction), commit=True))
-
+        cursor_params = CursorDto(query=query, params=(article_id, reaction), commit=True)
+        try:
+            return ArticleReactionRepository(**self._db.execute_query(cursor_params))
+        except Exception as error:
+            print(f"Error creating category: {error}")

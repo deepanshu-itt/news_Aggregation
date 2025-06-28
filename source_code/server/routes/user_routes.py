@@ -1,11 +1,11 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
 from services.user_service import UserService
 from services.news_service import NewsService
 from services.report_service import ArticleReportService
 from repository.category_repository import CategoryRepository
 from database.database import db
 from routes.auth_routes import login_required
-import arrow
+
 
 user_bp = Blueprint('user_bp', __name__)
 user_service = UserService()
@@ -85,6 +85,7 @@ def get_user_saved_articles_route():
     return jsonify(result), 200
 
 
+
 @user_bp.route('/news', methods=['GET'])
 @login_required
 def get_news():
@@ -133,11 +134,18 @@ def delete_user_keyword():
 @user_bp.route('/articles/<int:article_id>/report', methods=['POST'])
 @login_required
 def report_article(article_id):
-    print("entered")
     user_id = request.headers.get('X-User-Id')
     data = request.get_json()
     report_reason = data.get('reason') if data else "Not Specified"
     service = ArticleReportService()
     result, status_code = service.report_article(user_id, article_id, report_reason)
     return jsonify(result), status_code
-    
+
+
+@user_bp.route('/article', methods=['GET'])
+@login_required
+def get_user_saved_articles_route():
+    data = request.get_json()
+    article_id = data.get('article_id')
+    result = user_service.get_article_details(article_id)
+    return jsonify(result), 200

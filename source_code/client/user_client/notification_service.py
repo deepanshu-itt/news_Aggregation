@@ -1,5 +1,8 @@
+from news_api import NewsAPIClient
+
+
 class NotificationService:
-    def __init__(self, api_client, get_user):
+    def __init__(self, api_client: NewsAPIClient, get_user):
         self.api_client = api_client
         self.get_user = get_user
 

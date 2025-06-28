@@ -1,5 +1,6 @@
 from services.category_service import CategoryService
 from repository.category_repository import CategoryRepository
+
 class CategoryIdentifier:
     
     @staticmethod

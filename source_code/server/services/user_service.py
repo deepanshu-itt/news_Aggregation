@@ -4,6 +4,7 @@ from services.news_service import NewsService
 from repository.email_notification_repository import EmailNotificationRepository
 from repository.user_repository import UserRepository
 from models.user import User
+from repository.news_article_repository import NewsArticleRepository
 
 user_notification_manager = UserNotificationRepository()
 
@@ -144,4 +145,11 @@ class UserService:
     def get_user_saved_articles(user_id):
         articles = NewsService.get_saved_articles_for_user(user_id)
         return {"success": True, "articles": [single_article.__dict__ for single_article in articles]}, 200
+    
+    
+    @staticmethod
+    def get_article_details(article_id):
+        article_manager = NewsArticleRepository()
+        article =  article_manager.find_by_id(article_id)
+        return {"success": True, "article": article}, 200
     
