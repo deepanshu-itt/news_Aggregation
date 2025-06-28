@@ -57,6 +57,16 @@ class NewsArticleRepository(INewsArticleRepository):
         row = db.execute_query(cursor_params)
         return self._map_row_to_article(row) if row else None
 
+    
+    def update_article_view_count(self, article_id):
+
+        query = """ UPDATE news_articles
+                    SET views = views + 1
+                    WHERE id = %s;
+                """
+        params = (article_id,)
+        cursor_params = CursorDto(query=query, params= params, fetch_one=True)
+        db.execute_query(cursor_params)
 
     def get_articles(self, category_id=None, search_query=None) -> List[NewsArticle]:
         sql = """
@@ -221,7 +231,7 @@ class NewsArticleRepository(INewsArticleRepository):
 
         query += """
             GROUP BY na.id
-            ORDER BY relevance_score DESC, na.published_at DESC
+            ORDER BY relevance_score DESC, na.views DESC
         """
         cursor_params = CursorDto(query=query, params=tuple(params), fetch_all=True)
         rows = db.execute_query(cursor_params)

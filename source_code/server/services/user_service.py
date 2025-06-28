@@ -151,5 +151,6 @@ class UserService:
     def get_article_details(article_id):
         article_manager = NewsArticleRepository()
         article =  article_manager.find_by_id(article_id)
-        return {"success": True, "article": article}, 200
+        article_manager.update_article_view_count(article_id)
+        return {"success": True, "article": article.to_dict()}, 200
     

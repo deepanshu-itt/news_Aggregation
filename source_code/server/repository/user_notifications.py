@@ -26,7 +26,6 @@ class UserNotificationRepository(IUserNotifications):
 
         try:
             preferences = json.loads(raw_json)
-            print(preferences)
             if isinstance(preferences, list):
                 return [
                     {

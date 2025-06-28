@@ -50,7 +50,6 @@ def login_required(f):
 def admin_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
-        print(session)
         if not request.headers.get('X-User-Id') :
             return jsonify({"error": "Authentication Required", "message": "Please log in to access this resource."}), 401
         if request.headers.get('X-User-Role') != 'admin':

@@ -2,6 +2,8 @@ from datetime import date
 from utils import print_menu, get_date, display_articles, get_valid_article_id, display_article_information
 from news_api import NewsAPIClient
 from user_client.article_service import ArticleService
+import requests
+
 
 class HeadlinesMenu:
     def __init__(self, user_menu):
@@ -9,6 +11,7 @@ class HeadlinesMenu:
         self.get_user = user_menu.get_user
         self.article_service: ArticleService = user_menu.article_service
         self.user_service = user_menu.user_service
+        self.article_service = user_menu.article_service
 
 
     def run(self):
@@ -32,9 +35,9 @@ class HeadlinesMenu:
 
         print("\n--- Select a Category ---")
         print("1. All")
-        for idx, cat in enumerate(categories, start=2):
-            print(f"{idx}. {cat['name']}")
-            category_map[str(idx)] = cat['name']
+        for index, category in enumerate(categories, start=2):
+            print(f"{index}. {category['name']}")
+            category_map[str(index)] = category['name']
         print(f"{len(categories) + 2}. Back")
 
         choice = input("Select an option: ").strip()
@@ -64,8 +67,7 @@ class HeadlinesMenu:
                 self.user_service.logout()
                 return False
             elif choice == '3':
-                self.__handle_article_details()
-                return False
+                self._handle_article_details()
             elif choice in ['4', '5']:
                 self._handle_like_dislike(choice)
             elif choice == '6':
@@ -74,12 +76,12 @@ class HeadlinesMenu:
                 print("Invalid option.")
         return True
 
-
     
-    def __handle_article_details(self):
+    def _handle_article_details(self):
         article_id = int(input("Enter the Article ID:- "))
-        params = {"article_id":  article_id}
-        article_details_response = self.api_client.make_request('GET', 'user/article', params=params, current_user=self.get_user())
+        headers = {"Content-Type": "application/json"}
+        article_details_response= requests.get("http://localhost:5000/api/user/article", headers= headers, params={'article_id':article_id})
+        article_details_response = article_details_response.json()
         self.__handle_article_details_response(article_details_response)
         
     
@@ -95,17 +97,17 @@ class HeadlinesMenu:
         if article_id is None:
             return
         if choice == '3':
-            resp = self.article_service.save_article(article_id)
-            print(resp.get('message', "Failed to save article."))
+            response = self.article_service.save_article(article_id)
+            print(response.get('message', "Failed to save article."))
         else:
             self._react_to_article(article_id)
 
 
     def _react_to_article(self, article_id):
-        reaction = input("1. Like\n2. Dislike\nChoose reaction: ").strip()
-        if reaction == '1':
+        user_reaction = input("1. Like\n2. Dislike\nChoose reaction: ").strip()
+        if user_reaction == '1':
             result = self.article_service.react_to_article(article_id, "like")
-        elif reaction == '2':
+        elif user_reaction == '2':
             result = self.article_service.react_to_article(article_id, "dislike")
         else:
             print("Invalid reaction.")
@@ -122,6 +124,6 @@ class HeadlinesMenu:
         if article_id is None:
             print("Article reporting failed.")
             return
-        reason = input("Enter the article report reason:\n")
-        resp = self.article_service.report_article(article_id, reason)
-        print(resp)
+        article_report_reason = input("Enter the article report reason:\n")
+        response = self.article_service.report_article(article_id, article_report_reason)
+        print(response)

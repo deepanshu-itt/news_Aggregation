@@ -41,7 +41,7 @@ def display_single_article(article, index):
 
 
 def display_article_information(article: dict):
-    print(f"Article Id: {article.get('id')}")
+    print(f"\n\nArticle Id: {article.get('id')}")
     print(f"Title: {article.get('title', 'N/A')}")
     print(f"Source: {article.get('source', 'N/A')}")
     print(f"Published: {format_published_date(article.get('published_at'))}")

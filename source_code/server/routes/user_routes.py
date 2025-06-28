@@ -143,9 +143,7 @@ def report_article(article_id):
 
 
 @user_bp.route('/article', methods=['GET'])
-@login_required
-def get_user_saved_articles_route():
-    data = request.get_json()
-    article_id = data.get('article_id')
-    result = user_service.get_article_details(article_id)
-    return jsonify(result), 200
+def get_article_details_route():
+    article_id = request.args.get('article_id')
+    result, status_code = user_service.get_article_details(article_id)
+    return jsonify(result), status_code

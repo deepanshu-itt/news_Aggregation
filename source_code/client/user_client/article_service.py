@@ -9,8 +9,8 @@ class ArticleService:
     def get_saved_articles(self):
         return self.api_client.make_request('GET', 'user/articles/saved', current_user=self.get_user())
     
-    def get_saved_articles(self):
-        return self.api_client.make_request('GET', 'user/article', current_user=self.get_user())
+    # def get_article_details(self, article_id):
+    #     return self.api_client.make_request('GET', 'user/article', {'article_id': article_id}, current_user=self.get_user())
 
     def save_article(self, article_id):
         return self.api_client.make_request('POST', 'user/articles/save', {'article_id': article_id}, current_user=self.get_user())

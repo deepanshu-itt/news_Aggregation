@@ -11,21 +11,24 @@ class SearchMenu:
         self.article_service: ArticleService = user_menu.article_service
         self.user_service = user_menu.user_service
 
+
     def run(self):
         print("\n--- Search News ---")
-        query = input("Enter keyword(s): ").strip()
-        if not query:
+        user_query = input("Enter keyword(s): ").strip()
+        if not user_query:
             print("Search query can't be empty.")
             return True
 
         start, end = get_date()
         params = {
-            'q': query, 'limit': 20, 'offset': 0,
+            'q': user_query,
             'start_date': start.strftime('%Y-%m-%d'),
             'end_date': end.strftime('%Y-%m-%d')
         }
 
-        response = self.api_client.make_request('GET', 'user/news', params=params, current_user=self.get_user())
+        response = self.api_client.make_request('GET', 'user/news', params=params, 
+                                            current_user=self.get_user())
+        
         if not response.get('success'):
             print("Search failed.")
             return True

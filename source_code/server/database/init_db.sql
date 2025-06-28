@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS news_articles (
     category_id INT,
     raw_data JSON, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    views INT NOT NULL DEFAULT 0,
     is_hidden BOOLEAN NOT NULL DEFAULT FALSE,
     report_count INT NOT NULL DEFAULT 0,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
