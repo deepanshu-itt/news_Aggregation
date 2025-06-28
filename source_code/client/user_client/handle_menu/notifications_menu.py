@@ -10,25 +10,32 @@ class NotificationsMenu:
         self.user_service = user_menu.user_service
 
 
+    def safe_execute(self, func, *args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            print("An unexpected error occurred.")
+            return None
+
+
     def run(self):
         while True:
-            choice = print_menu("Notifications", ["View", "Configure", "Back", "Logout"])
+            choice = self.safe_execute(print_menu, "Notifications", ["View", "Configure", "Back", "Logout"])
             if choice == '1':
-                self._view_notifications()
+                self.safe_execute(self._view_notifications)
             elif choice == '2':
-                return self._configure_notifications()
+                return self.safe_execute(self._configure_notifications)
             elif choice == '3':
                 return True
             elif choice == '4':
-                self.user_service.logout()
-                return False
+                return self.safe_execute(self.user_service.logout)
             else:
                 print("Invalid option.")
 
 
     def _view_notifications(self):
-        response = self.notification_service.get_notifications()
-        if not response.get('success'):
+        response = self.safe_execute(self.notification_service.get_notifications)
+        if not response or not response.get('success'):
             print("Failed to load notifications.")
             return
 
@@ -38,7 +45,6 @@ class NotificationsMenu:
             print("No notifications found.")
             return
 
-
         for index, notification in enumerate(notifications, 1):
             print(f"{index}. Category ID: {notification.get('category_id')}, Articles: {notification.get('article_ids')}")
             print(f"   Message: {notification.get('message')}")
@@ -47,54 +53,58 @@ class NotificationsMenu:
 
 
     def _configure_notifications(self):
-        preferences = self.notification_service.get_user_preferences()
-        categories_response = self.api_client.make_request('GET', 'user/categories', current_user=self.get_user())
-        if not preferences.get('success') or not categories_response.get('success'):
-            print("Failed to load preferences or categories.")
-            return True
-
-
-        categories = categories_response.get("categories", [])
-        enabled = {category_preference['name']: category_preference['enabled'] 
-                   for category_preference in 
-                   preferences['preferences'].get('category_preferences',
-                    [])}
-
         while True:
-            self._print_category_settings(categories, enabled)
-            option = input("Choose an option: ").strip()
+            categories, enabled, preferences = self.get_enabled_categories()
+            self.safe_execute(self._print_category_settings, categories, enabled)
+            option = int(input("Choose an option: ").strip())
             try:
-                option = int(option)
                 if 1 <= option <= len(categories):
                     category_name = categories[option - 1]['name']
-                    self._toggle_category(category_name)
+                    self.safe_execute(self._toggle_category, category_name)
                 elif option == len(categories) + 1:
-                    self._manage_keywords(preferences)
+                    self.safe_execute(self._manage_keywords, preferences)
                 elif option == len(categories) + 2:
                     return True
                 elif option == len(categories) + 3:
-                    self.user_service.logout()
-                    return False
+                    return self.safe_execute(self.user_service.logout)
                 else:
                     print("Invalid option.")
             except ValueError:
                 print("Invalid input.")
+
         return True
+
+
+    def get_enabled_categories(self):
+        preferences = self.safe_execute(self.notification_service.get_user_preferences)
+        categories_response = self.safe_execute(self.api_client.make_request, 'GET', 
+                                            'user/categories', current_user=self.get_user())
+        
+        if (not preferences or not preferences.get('success') 
+            or not categories_response or not categories_response.get('success')):
+            print("Failed to load preferences or categories.")
+            return True
+
+        categories = categories_response.get("categories", [])
+        enabled = {category_preferences['name']: category_preferences['enabled'] 
+                for category_preferences in preferences['preferences'].get('category_preferences', [])}
+        
+        return categories, enabled, preferences
 
 
     def _print_category_settings(self, categories, enabled):
         print("\n--- Notification Categories ---")
         for index, category in enumerate(categories, 1):
-            category_status = "Enabled" if enabled.get(category['name'], False) else "Disabled"
-            print(f"{index}. {category['name']} - {category_status}")
+            status = "Enabled" if enabled.get(category['name'], False) else "Disabled"
+            print(f"{index}. {category['name']} - {status}")
         print(f"{len(categories) + 1}. Manage Keywords")
         print(f"{len(categories) + 2}. Back")
         print(f"{len(categories) + 3}. Logout")
 
 
     def _toggle_category(self, category_name):
-        response = self.notification_service.toggle_category_notification(category_name)
-        print(response.get('message', "Failed to update setting."))
+        response = self.safe_execute(self.notification_service.toggle_category_notification, category_name)
+        print(response.get('message', "Failed to update setting.") if response else "Failed to update setting.")
 
 
     def _manage_keywords(self, preferences):
@@ -103,12 +113,12 @@ class NotificationsMenu:
             print("No categories available.")
             return
 
-        self._print_category_list(category_preferences)
-        selected = self._select_category(category_preferences)
+        self.safe_execute(self._print_category_list, category_preferences)
+        selected = self.safe_execute(self._select_category, category_preferences)
         if not selected:
             return
 
-        self._category_action(selected)
+        self.safe_execute(self._category_action, selected)
 
 
     def _print_category_list(self, categories):
@@ -127,15 +137,15 @@ class NotificationsMenu:
 
 
     def _category_action(self, category):
-        self._print_category_details(category)
-        choice = print_menu("Manage Keywords", ["Add Keyword(s)", "Remove Keyword(s)", "Disable Category", "Back"])
+        self.safe_execute(self._print_category_details, category)
+        choice = self.safe_execute(print_menu, "Manage Keywords", ["Add Keyword(s)", "Remove Keyword(s)", "Disable Category", "Back"])
 
         if choice == '1':
-            self._add_keywords(category)
+            self.safe_execute(self._add_keywords, category)
         elif choice == '2':
-            self._remove_keywords(category)
+            self.safe_execute(self._remove_keywords, category)
         elif choice == '3':
-            self._disable_category(category)
+            self.safe_execute(self._disable_category, category)
         elif choice == '4':
             return
         else:
@@ -150,12 +160,12 @@ class NotificationsMenu:
 
 
     def _add_keywords(self, category):
-        keywords = self._get_keywords_input("Enter comma-separated keywords to add: ")
+        keywords = self.safe_execute(self._get_keywords_input, "Enter comma-separated keywords to add: ")
         if not keywords:
             print("No keywords entered.")
             return
-        response = self.notification_service.update_keywords(category['name'], keywords)
-        print(response.get('message', 'Failed to add keywords.'))
+        response = self.safe_execute(self.notification_service.update_keywords, category['name'], keywords)
+        print(response.get('message', 'Failed to add keywords.') if response else "Failed to add keywords.")
 
 
     def _remove_keywords(self, category):
@@ -163,20 +173,20 @@ class NotificationsMenu:
         if not keywords:
             print("No keywords to remove.")
             return
-        self._print_keyword_list(keywords)
-        selected = self._get_selected_keywords(keywords)
+        self.safe_execute(self._print_keyword_list, keywords)
+        selected = self.safe_execute(self._get_selected_keywords, keywords)
         if not selected:
             print("No valid keywords selected.")
             return
-        response = self.notification_service.delete_keyword(category['name'], selected)
-        print(response.get('message', 'Failed to remove keywords.'))
+        response = self.safe_execute(self.notification_service.delete_keyword, category['name'], selected)
+        print(response.get('message', 'Failed to remove keywords.') if response else "Failed to remove keywords.")
 
 
     def _disable_category(self, category):
         confirm = input(f"Disable '{category['name']}' and clear keywords? (y/n): ").strip().lower()
         if confirm == 'y':
-            response = self.notification_service.delete_keyword(category['name'], [])
-            print(response.get('message', 'Failed to disable category.'))
+            response = self.safe_execute(self.notification_service.delete_keyword, category['name'], [])
+            print(response.get('message', 'Failed to disable category.') if response else "Failed to disable category.")
         else:
             print("Cancelled.")
 
@@ -197,5 +207,5 @@ class NotificationsMenu:
 
 
     def _get_keywords_input(self, message):
-        user_input_keywords = input(message).strip().lower().split(',')
-        return [keyword.strip() for keyword in user_input_keywords if keyword.strip()]
+        user_input = input(message).strip().lower().split(',')
+        return [keyword.strip() for keyword in user_input if keyword.strip()]

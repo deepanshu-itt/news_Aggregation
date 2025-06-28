@@ -14,12 +14,9 @@ class SearchMenu:
 
     def run(self):
         print("\n--- Search News ---")
-        user_query = input("Enter keyword(s): ").strip()
-        if not user_query:
-            print("Search query can't be empty.")
-            return True
-
+        user_query = self.__get_user_query()
         start, end = get_date()
+        
         params = {
             'q': user_query,
             'start_date': start.strftime('%Y-%m-%d'),
@@ -29,14 +26,27 @@ class SearchMenu:
         response = self.api_client.make_request('GET', 'user/news', params=params, 
                                             current_user=self.get_user())
         
+        articles = self.__handle_response(response)
+        if articles:
+            return HeadlinesMenu(self).run()
+        else:
+            print("No results found.")
+            return True
+
+    
+    def __get_user_query(self):
+        user_query = None
+        while not user_query:
+            user_query = input("Enter keyword(s): ").strip()
+            if not user_query:
+                print("Search query can't be empty.")
+    
+    
+    def __handle_response(self, response):
         if not response.get('success'):
             print("Search failed.")
             return True
 
         articles = response.get('articles', [])
         display_articles(articles)
-        if articles:
-            return HeadlinesMenu(self).run()
-        else:
-            print("No results found.")
-            return True
+        return articles

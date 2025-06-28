@@ -15,7 +15,10 @@ class SavedArticlesMenu:
             return True
 
         display_articles(response[0].get('articles', []))
+        return self.safe_execute(self._handle_saved_articles_menu)
 
+    
+    def _handle_saved_articles_menu(self):
         while True:
             choice = print_menu("Manage Saved Articles", ["Back", "Logout", "Delete Article"])
             if choice == '1':
@@ -30,3 +33,11 @@ class SavedArticlesMenu:
                     print(result.get('message', "Failed to delete article."))
             else:
                 print("Invalid option.")
+
+        
+    def safe_execute(self, func, *args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            print("An unexpected error occurred.")
+            return None
