@@ -138,28 +138,32 @@ class AdminMenu:
     def _add_news_category(self):
         print("\nAdd new News Category")
         category_name = self._get_user_input("Enter the Category Name:-")
-        response = self.api_client.make_request('POST', 'admin/categories', {'name': category_name}, current_user=self.get_current_user())
+        response = self.api_client.make_request('POST', 'admin/categories', 
+                                {'name': category_name}, current_user=self.get_current_user())
         self._print_response(response, "Failed to add new category.")
         
 
     def _hide_articles_by_category(self):
         print("\nHide Articles By Category")
         category_name = self._get_user_input("Enter the Category Name:-")
-        response = self.api_client.make_request('POST', f'admin/hide_category_article',{'name': category_name}, current_user=self.get_current_user())
+        response = self.api_client.make_request('POST', f'admin/hide_category_article',
+                                {'name': category_name}, current_user=self.get_current_user())
         self._print_response(response, "Failed to hide articles by category.")
     
     
     def _unhide_articles_by_category(self):
         print("\nUnHide Articles By Category")
         category_name = self._get_user_input("Enter the Category Name:-")
-        response = self.api_client.make_request('POST', f'admin/unhide_category_article',{'name': category_name}, current_user=self.get_current_user())
+        response = self.api_client.make_request('POST', f'admin/unhide_category_article',
+                                {'name': category_name}, current_user=self.get_current_user())
         self._print_response(response, "Failed to unhide articles by category.")
     
     
     def _hide_articles_by_keywords(self):
         print("\nHide Articles By Keywords")
         keyword= self._get_user_input("Enter the Keyword:-")
-        response = self.api_client.make_request('POST', f'admin/hide_article/keywords',{'keyword': keyword}, current_user=self.get_current_user())
+        response = self.api_client.make_request('POST', f'admin/hide_article/keywords',
+                                {'keyword': keyword}, current_user=self.get_current_user())
         self._print_response(response, "Failed to add keyword")
         
     

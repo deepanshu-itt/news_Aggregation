@@ -15,12 +15,7 @@ class Authentication:
 
         response = api_client.make_request('POST', 'auth/login', {'email': email, 'password': password})
 
-        if response and response.get('success'):
-            print(response['message'])
-            return response['user']
-        else:
-            print("Login failed.")
-            return None
+        return Authentication.get_user_from_response(response)
     
     
     @staticmethod
@@ -85,9 +80,22 @@ class Authentication:
 
 
     def __check_response(response):
+        result = False
         if response and response.get('success'):
             print(response['message'])
-            return True
+            result = True
         else:
             print("Sign up failed.")
-            return False
+        
+        return result
+
+
+    def get_user_from_response(response):
+        user = None
+        if response and response.get('success'):
+            print(response['message'])
+            user = response['user']
+        else:
+            print("Login failed.")
+        
+        return user

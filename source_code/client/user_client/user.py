@@ -9,8 +9,10 @@ class UserService:
         self.get_user = get_user_callback
         self.set_user = set_user_callback
 
+
     def logout(self):
         Authentication.logout(self.set_user)
+
 
     def run_menu(self):
         article_service = ArticleService(self.api_client, self.get_user)

@@ -55,7 +55,8 @@ class CategoryRepository:
         cursor_params = CursorDto(query=query, params=(category_id,),  fetch_one=True)
         data = self._db.execute_query(cursor_params)
         query = "update news_articles set is_hidden =1 where category_id = %s"
-        data = self._db.execute_query(query, (category_id,), fetch_one=True)
+        cursor_params = CursorDto(query=query, params=(category_id,),  fetch_one=True)
+        data = self._db.execute_query(cursor_params)
         return data['id'] if data else None
     
     
@@ -64,5 +65,6 @@ class CategoryRepository:
         cursor_params = CursorDto(query=query, params=(category_id,),  fetch_one=True)
         data = self._db.execute_query(cursor_params)
         query = "update news_articles set is_hidden =0 where category_id = %s"
-        data = self._db.execute_query(query, (category_id,), fetch_one=True)
+        cursor_params = CursorDto(query=query, params=(category_id,),  fetch_one=True)
+        data = self._db.execute_query(cursor_params)
         return data['id'] if data else None

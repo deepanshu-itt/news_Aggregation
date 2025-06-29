@@ -14,5 +14,7 @@ def load_external_server_keys_into_app_config(flask_app_config):
         if 'thenewsapi.com' in api_keys_from_db:
             flask_app_config['THENEWSAPI_COM_API_KEY'] = api_keys_from_db['thenewsapi.com']
         print("loaded")
-    except Exception as e:
+    
+    except Exception as error:
+        print(error)
         pass

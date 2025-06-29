@@ -3,7 +3,6 @@ from utils import (print_menu, get_date, display_articles,
                    get_valid_article_id,display_article_information)
 from news_api import NewsAPIClient
 from user_client.article_service import ArticleService
-import requests
 
 
 class HeadlinesMenu:
@@ -22,6 +21,7 @@ class HeadlinesMenu:
             print("An error occurred while executing the operation.")
             return None
 
+
     def run(self):
         while True:
             choice = self.safe_execute(print_menu, "Headlines", ["Today", "Date range", "Back"])
@@ -35,18 +35,13 @@ class HeadlinesMenu:
             else:
                 print("Invalid option.")
 
+
     def _show_headlines(self, start_date, end_date):
         categories_resp = self.safe_execute(self.api_client.make_request, 'GET', 'user/categories', current_user=self.get_user())
         categories = categories_resp.get("categories", []) if categories_resp else []
         category_map = {'1': None}
 
-        print("\n--- Select a Category ---")
-        print("1. All")
-        for index, category in enumerate(categories, start=2):
-            print(f"{index}. {category['name']}")
-            category_map[str(index)] = category['name']
-        print(f"{len(categories) + 2}. Back")
-
+        self._print_categories_manage_menu(categories, category_map)
         choice = input("Select an option: ").strip()
         if choice == str(len(categories) + 2):
             return True
@@ -64,6 +59,16 @@ class HeadlinesMenu:
             return self.safe_execute(self._article_interaction_loop)
         return True
 
+
+    def _print_categories_manage_menu(self, categories, category_map):
+        print("\n--- Select a Category ---")
+        print("1. All")
+        for index, category in enumerate(categories, start=2):
+            print(f"{index}. {category['name']}")
+            category_map[str(index)] = category['name']
+        print(f"{len(categories) + 2}. Back")
+
+    
     def _article_interaction_loop(self):
         while True:
             choice = self.safe_execute(print_menu, "Article Options", [
@@ -83,26 +88,23 @@ class HeadlinesMenu:
                 print("Invalid option.")
         return True
 
+
     def _handle_article_details(self):
         article_id = self.safe_execute(lambda: int(input("Enter the Article ID:- ")))
         if not article_id:
             return
-        headers = {"Content-Type": "application/json"}
-        response = self.safe_execute(
-            requests.get,
-            "http://localhost:5000/api/user/article",
-            headers=headers,
-            params={'article_id': article_id}
-        )
+       
+        response = self.safe_execute(self.api_client.make_request, 'GET', 'user/article', params={'article_id': article_id}, current_user=self.get_user())
         if response:
-            json_data = self.safe_execute(response.json)
-            self.safe_execute(self.__handle_article_details_response, json_data)
+            self.safe_execute(self.__handle_article_details_response, response)
+
 
     def __handle_article_details_response(self, article_details_response):
         if article_details_response and article_details_response.get("success"):
             self.safe_execute(display_article_information, article_details_response.get("article"))
         else:
             print("No Article Information Available.")
+
 
     def _handle_like_dislike(self, choice):
         article_id = self.safe_execute(get_valid_article_id)
@@ -114,6 +116,7 @@ class HeadlinesMenu:
         else:
             self.safe_execute(self._react_to_article, article_id)
 
+
     def _react_to_article(self, article_id):
         reaction = input("1. Like\n2. Dislike\nChoose reaction: ").strip()
         if reaction == '1':
@@ -124,6 +127,7 @@ class HeadlinesMenu:
             print("Invalid reaction.")
             return
         print(result.get('message') if result else "Failed to react to article.")
+
 
     def _handle_report_article(self):
         article_id = self.safe_execute(get_valid_article_id)

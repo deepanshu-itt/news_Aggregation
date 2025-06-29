@@ -34,7 +34,7 @@ def get_all_servers():
 def add_category():
     category = category_service.getCategories()
     data = request.get_json()
-    category_name = data.get('name')
+    category_name = data.get('name').lower()
     
     if category_name in category:
         print(category_name)
@@ -59,18 +59,24 @@ def update_server_status(server_id):
     new_api_key = data.get('api_key')
     
     if new_status not in ['active', 'inactive']:
-        return jsonify({"success": False, "message": "Invalid status. Must be 'active' or 'inactive'."}), 400
+        return jsonify({"success": False, 
+                "message": "Invalid status. Must be 'active' or 'inactive'."}), 400
+        
     mysql_external_server = MySQLExternalServerRepository()
     server =  mysql_external_server.find_by_id(server_id) 
+
     if not server:
         return jsonify({"success": False, "message": "Server not found."}), 404
 
     if new_api_key:
         mysql_external_server.update_status(server_id, new_status, new_api_key)
-        return jsonify({"success": True, "message": f"Server {server.name} status updated to {new_status} and spi_key updated to {new_api_key}."}), 200
+        return jsonify({"success": True, 
+        "message": f"Server {server.name} status updated to {new_status} and spi_key updated to {new_api_key}."}), 200
+    
     else:
         mysql_external_server.update_status(server_id, new_status)
-        return jsonify({"success": True, "message": f"Server {server.name} status updated to {new_status}."}), 200
+        return jsonify({"success": True, 
+                "message": f"Server {server.name} status updated to {new_status}."}), 200
 
 
 @admin_bp.route('/external_servers/details', methods=['GET'])
@@ -78,12 +84,12 @@ def update_server_status(server_id):
 def get_external_server_details():
     try:
         mysql_external_server = MySQLExternalServerRepository()
-        servers = mysql_external_server.get_all()
+        external_servers = mysql_external_server.get_all()
         filtered_servers = []
-        for s in servers:
+        for server in external_servers:
             filtered_servers.append({
-                "name": s.name,
-                "api_key": s.api_key,
+                "name": server.name,
+                "api_key": server.api_key,
             })
 
         return jsonify({
@@ -91,8 +97,9 @@ def get_external_server_details():
             "servers": filtered_servers
         }), 200
 
-    except Exception as e:
-        return jsonify({"success": False, "message": f"Error retrieving server details: {str(e)}"}), 500
+    except Exception as error:
+        return jsonify({"success": False,
+                "message": f"Error retrieving server details: {str(error)}"}), 500
 
 
 @admin_bp.route('/hide_article/<int:article_id>', methods=['GET'])
@@ -103,47 +110,58 @@ def hide_article(article_id):
 
     success = ReportArticleRepository().hide_article(article_id)
     if success:
-        return jsonify({"message": f"Article {article_id} hidden Successfully"}), 200
-    return jsonify({"error": "Article not found"}), 404
+        return jsonify({"success": True, 
+                    "message": f"Article {article_id} hidden Successfully"}), 200
+
+    return jsonify({"success": False,
+                "error": "Article not found"}), 404
 
 
 @admin_bp.route('/hide_category_article', methods=['POST'])
 def hide_article_by_category():
     try:
         data = request.get_json()
-        category_name = data.get('name')
+        category_name = data.get('name').lower()
         service = ArticleReportService()
         service.block_article_by_category(category_name)
-        return jsonify({"success": True, "message": f"Articles of this category hidden Successfully"}), 200
+        return jsonify({"success": True,
+                "message": f"Articles of this category hidden Successfully"}), 200
     
     except Exception as error:
         print(error)
-        return jsonify({"success": False, "message": f"Block Articles By Category Operation Failed"}), 500
+        return jsonify({"success": False,
+                "message": f"Block Articles By Category Operation Failed"}), 500
 
 
 @admin_bp.route('/unhide_category_article', methods=['POST'])
+@admin_required
 def unhide_article_by_category():
     try:
         data = request.get_json()
-        category_name = data.get('name')
+        category_name = data.get('name').lower()
         service = ArticleReportService()
         service.unblock_article_by_category(category_name)
-        return jsonify({"success": True, "message": f"Articles of this category Unhidden Successfully"}), 200
+        return jsonify({"success": True,
+                "message": f"Articles of this category Unhidden Successfully"}), 200
     
     except Exception as error:
         print(error)
-        return jsonify({"success": False, "message": f"Unblock Articles By Category Operation Failed"}), 500
+        return jsonify({"success": False,
+                "message": f"Unblock Articles By Category Operation Failed"}), 500
 
 
 @admin_bp.route('/hide_article/keywords', methods=['POST'])
+@admin_required
 def hide_article_by_keywords():
     try:
         data = request.get_json()
         keyword = data.get('keyword')
         service = ArticleReportService()
         service.block_article_by_keyword(keyword)
-        return jsonify({"success": True, "message": f"Articles related to this keyword will be hidden."}), 200
+        return jsonify({"success": True,
+                "message": f"Articles related to this keyword will be hidden."}), 200
     
     except Exception as error:
         print(error)
-        return jsonify({"success": False, "message": f"Articles hidden Operation related to keyword Failed"}), 500
+        return jsonify({"success": False, 
+                "message": f"Articles hidden Operation related to keyword Failed"}), 500

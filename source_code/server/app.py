@@ -11,16 +11,17 @@ app = create_app()
 
 db_instance = db.get_connection()
 if not db_instance:
-    print("FATAL: Could not connect to the database. Please check your MySQL server and credentials in .env file.", file=sys.stderr)
+    print("Could not connect to the database. Please check your MySQL server and credentials.", 
+        file=sys.stderr)
     sys.exit(1)
 
 
 
 if __name__ == '__main__':
-    # tests_passed = unittest.TextTestRunner().run(
-    #     unittest.defaultTestLoader.discover("tests")
-    # ).wasSuccessful()
+    tests_passed = unittest.TextTestRunner().run(
+        unittest.defaultTestLoader.discover("tests")
+    ).wasSuccessful()
 
-    # if tests_passed:
+    if tests_passed:
     # start_scheduler(app.config)
-    app.run(debug=True, host='0.0.0.0', port=5000)
+        app.run(debug=True, host='0.0.0.0', port=5000)

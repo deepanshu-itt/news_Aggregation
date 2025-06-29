@@ -56,7 +56,7 @@ class ReportArticleRepository:
         result = None
         try:
             query = """
-                        INSERT INTO article_reports (user_id, article_id, reason)
+                        INSERT IGNORE INTO article_reports (user_id, article_id, reason)
                         VALUES (%s, %s, %s)
                     """
             cursor_params = CursorDto(query=query, params=(user_id, article_id, reason))
@@ -73,7 +73,7 @@ class ReportArticleRepository:
     def hide_by_keyword(self, keyword):
         result = None
         try:
-            query = """INSERT INTO article_filters (keyword) VALUES (%s)"""
+            query = """INSERT IGNORE INTO article_filters (keyword) VALUES (%s)"""
             
             cursor_params = CursorDto(query=query, params=(keyword,))
             db.execute_query(cursor_params)

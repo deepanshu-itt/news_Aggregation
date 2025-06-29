@@ -15,7 +15,8 @@ def create_app():
     app.config.from_object(Config)
 
     if not app.config.get('SECRET_KEY'):
-        print("FATAL: SECRET_KEY is not set in .env or config.py. Please generate one and set it.", file=sys.stderr)
+        print("FATAL: SECRET_KEY is not set in .env or config.py. Please generate one and set it.", 
+            file=sys.stderr)
         sys.exit(1)
 
 
@@ -34,14 +35,19 @@ def create_app():
     def home():
         return jsonify({"message": "News Aggregation Server is running! Access API at /api"}), 200
 
+
     @app.errorhandler(404)
     def not_found(error):
-        return jsonify({"error": "Not found", "message": "The requested URL was not found on the server."}), 404
+        return jsonify({"error": "Not found", 
+                    "message": "The requested URL was not found on the server."}), 404
+
 
     @app.errorhandler(500)
     def internal_server_error(error):
         print(f"Internal Server Error: {error}", file=sys.stderr)
-        return jsonify({"error": "Internal server error", "message": "Something went wrong on the server."}), 500
+        return jsonify({"error": "Internal server error", 
+                    "message": "Something went wrong on the server."}), 500
+
 
     @app.context_processor
     def inject_user():
@@ -51,4 +57,3 @@ def create_app():
         return dict(current_user_id=user_id, current_username=username, current_user_role=role)
 
     return app
-

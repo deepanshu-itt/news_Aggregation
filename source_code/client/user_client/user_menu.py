@@ -16,6 +16,7 @@ class UserMenu:
         self.notification_service = notification_service
         self.user_service = user_service
 
+
     def run_menu(self):
         response = True
         while response:
@@ -37,6 +38,7 @@ class UserMenu:
                 break
             else:
                 print("Invalid option. Try again.")
+
 
     def _welcome_user(self):
         user = self.get_user()
