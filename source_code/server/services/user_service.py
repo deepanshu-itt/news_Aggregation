@@ -153,4 +153,3 @@ class UserService:
         article =  article_manager.find_by_id(article_id)
         article_manager.update_article_view_count(article_id)
         return {"success": True, "article": article.to_dict()}, 200
-    

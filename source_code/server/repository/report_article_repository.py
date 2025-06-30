@@ -14,6 +14,18 @@ class ReportArticleRepository:
         except Exception as error:
             return jsonify(error)
     
+    
+    def get_article_by_user_id_and_article_id(self, user_id, article_id):
+        try:
+            query = "SELECT * FROM article_reports WHERE user_id = %s and article_id = %s"
+            cursor_params = CursorDto(query=query, params=(user_id, article_id), fetch_one=True)
+            row = db.execute_query(cursor_params)
+            return row
+        
+        except Exception as error:
+            return jsonify(error)
+    
+    
 
     def hide_article(self, article_id):
         try:
@@ -56,7 +68,7 @@ class ReportArticleRepository:
         result = None
         try:
             query = """
-                        INSERT IGNORE INTO article_reports (user_id, article_id, reason)
+                        INSERT INTO article_reports (user_id, article_id, reason)
                         VALUES (%s, %s, %s)
                     """
             cursor_params = CursorDto(query=query, params=(user_id, article_id, reason))
@@ -70,6 +82,42 @@ class ReportArticleRepository:
         return result
     
     
+    def remove_report(self, user_id, article_id):
+        result = None
+        try:
+            query = """
+                        DELETE FROM article_reports WHERE user_id = %s AND article_id = %s
+                    """
+            cursor_params = CursorDto(query=query, params=(user_id, article_id))
+            db.execute_query(cursor_params)
+            result = f"Article {article_id} Report added successfully.", 200
+
+        except Exception as error:
+            print(error)
+            result = f"Article {article_id} unreport failed.", 502
+
+        return result
+    
+    
+    def decrement_report_count(self, article_id):
+        try:
+            result = None
+            query = """
+                        UPDATE news_articles
+                        SET report_count = report_count - 1
+                        WHERE id = %s
+                    """
+            cursor_params = CursorDto(query=query, params=(article_id,))
+            db.execute_query(cursor_params)
+            result =  f"Article {article_id} unreported successfully.", 200
+
+        except Exception as error:
+            print(error)
+            result =  f"Article {article_id} unreport Failed", 502
+        
+        return result
+
+
     def hide_by_keyword(self, keyword):
         result = None
         try:

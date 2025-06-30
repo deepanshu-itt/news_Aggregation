@@ -23,16 +23,18 @@ def react_to_article(article_id):
         service.react(user_id, article_id, reaction)
         return jsonify({"success": True,"message": f"{reaction} recorded successfully"}), 200
     except ValueError as error:
+        print(error)
         return jsonify({"success": False,"error": str(error)}), 400
     except Exception:
+        print(error)
         return jsonify({"success": False,"error": "Something went wrong"}), 500
 
 
-@article_reaction_bp.route('/articles/<int:article_id>/<string:reaction_type>', methods=['GET'])
-def get_reaction_count(article_id, reaction_type):
-    service = get_service()
-    try:
-        count = service.get_count(article_id, reaction_type)
-        return jsonify({"success": True,"article_id": article_id, reaction_type: count}), 200
-    except Exception:
-        return jsonify({"success": False,"error": "Something went wrong"}), 500
+# @article_reaction_bp.route('/articles/<int:article_id>/<string:reaction_type>', methods=['GET'])
+# def get_reaction_count(article_id: int, reaction_type: str):
+#     service = get_service()
+#     try:
+#         count = service.get_count(article_id, reaction_type.lower())
+#         return jsonify({"success": True,"article_id": article_id, reaction_type: count}), 200
+#     except Exception:
+#         return jsonify({"success": False,"error": "Something went wrong"}), 500

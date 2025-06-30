@@ -107,6 +107,8 @@ def get_news():
     else:
         print("Invalid data for searching Articles")
         jsonify({"success": False, "message": "Missing searching data."}), 403
+    
+    
     return jsonify({"success": True, "articles": [article.__dict__ for article in articles]}), 200
 
 
@@ -139,6 +141,15 @@ def report_article(article_id):
     report_reason = data.get('reason') if data else "Not Specified"
     service = ArticleReportService()
     result, status_code = service.report_article(user_id, article_id, report_reason)
+    return jsonify(result), status_code
+
+
+@user_bp.route('/articles/<int:article_id>/unreport', methods=['POST'])
+@login_required
+def unreport_article(article_id):
+    user_id = request.headers.get('X-User-Id')
+    service = ArticleReportService()
+    result, status_code = service.unreport_article(user_id, article_id)
     return jsonify(result), status_code
 
 

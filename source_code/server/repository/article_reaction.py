@@ -10,7 +10,7 @@ class ArticleReactionRepository(IArticleReaction):
 
     def upsert_reaction(self, user_id: int, article_id: int, reaction: str):
         query = """
-        INSERT INTO article_reactions (user_id, article_id, reaction)
+        INSERT IGNORE INTO article_reactions (user_id, article_id, reaction)
         VALUES (%s, %s, %s)
         ON DUPLICATE KEY UPDATE reaction = VALUES(reaction), reacted_at = CURRENT_TIMESTAMP
         """

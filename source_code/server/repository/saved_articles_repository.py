@@ -9,7 +9,7 @@ class SavedArticleRepository(ISavedArticle):
     
     def create(self, user_id: int, article_id: int) -> Optional[SavedArticle]:
         result = None
-        query = "INSERT INTO saved_articles (user_id, article_id) VALUES (%s, %s)"
+        query = "INSERT IGNORE INTO saved_articles (user_id, article_id) VALUES (%s, %s)"
         cursor_params = CursorDto(query=query, params=(user_id, article_id), commit=True)
         try:
             saved_id = db.execute_query(cursor_params)

@@ -12,9 +12,8 @@ class UserRepository(IUser):
     
     def create(self, username: str, email: str, password: str, role: str = 'user') -> Optional[User]:
         hashed_password = generate_password_hash(password)
-        query = "INSERT INTO users (username, email, password_hash, role) VALUES (%s, %s, %s, %s)"
+        query = "INSERT IGNORE INTO users (username, email, password_hash, role) VALUES (%s, %s, %s, %s)"
         cursor_params = CursorDto(query=query, params=(username, email, hashed_password, role), commit=True)
-        result = db.execute_query(cursor_params)
         try:
             user_id = db.execute_query(cursor_params)
             return User(user_id, username, email, hashed_password, role) if user_id else None
@@ -46,14 +45,12 @@ class UserRepository(IUser):
 
 
     def remove_notification_keyword(self, userid, category_name: str, keyword=None):
-        
         if not keyword:
             return self.__handle_category_removal(userid, category_name)
         else:
             return self.__handle_keyword_removal(userid, category_name, keyword)
-    
 
-    
+
     def __handle_category_removal(self, userid: int, category_name: str):
         preferences_list = self.__fetch_user_preferences(userid)
         updated_preferences = [
@@ -94,8 +91,8 @@ class UserRepository(IUser):
             }, 200
         
         return response 
-        
-        
+
+
     def __update_user_preferences(self, userid, updated_preferences):
         update_query = "UPDATE user_notifications SET category_preferences = %s WHERE user_id = %s"
         cursor_params = CursorDto(
@@ -105,8 +102,8 @@ class UserRepository(IUser):
             fetch_one=False
         )
         db.execute_query(cursor_params)
-    
-    
+
+
     def __fetch_user_preferences(self, userid):
         query = "SELECT category_preferences FROM user_notifications WHERE user_id = %s"
         cursor_params = CursorDto(query=query, params=(userid,), fetch_one=True)
@@ -121,7 +118,6 @@ class UserRepository(IUser):
             return json.loads(preferences)
         except json.JSONDecodeError:
             return []
-
 
 
     def __handle_keyword_not_removed(self, keyword, category_name, keyword_removed):
