@@ -22,7 +22,7 @@ get_all_articles_query = """
         """
         
 
-get_Article_by_date_range_query = """
+get_article_by_date_range_query = """
             SELECT 
                 na.*, 
                 c.name AS category_name,
@@ -45,7 +45,21 @@ get_article_by_keyword_query = """
         FROM news_articles na
         JOIN categories c ON na.category_id = c.id
         LEFT JOIN article_reactions ar ON na.id = ar.article_id
-        WHERE na.is_hidden != 1 AND na.title LIKE %s OR na.description LIKE %s OR na.raw_data LIKE %s
+        WHERE na.is_hidden != 1 AND (na.title LIKE %s OR na.description LIKE %s OR na.raw_data LIKE %s)
+        GROUP BY na.id
+        ORDER BY na.published_at DESC
+        """
+
+get_article_by_keyword_and_range_query = """
+        SELECT 
+            na.*, 
+            c.name AS category_name,
+            COALESCE(SUM(ar.reaction = 'like'), 0) AS like_count,
+            COALESCE(SUM(ar.reaction = 'dislike'), 0) AS dislike_count
+        FROM news_articles na
+        JOIN categories c ON na.category_id = c.id
+        LEFT JOIN article_reactions ar ON na.id = ar.article_id
+        WHERE na.is_hidden != 1 AND  na.published_at BETWEEN %s AND %s AND (na.title LIKE %s OR na.description LIKE %s OR na.raw_data LIKE %s)
         GROUP BY na.id
         ORDER BY na.published_at DESC
         """
@@ -80,7 +94,7 @@ hide_article_by_category_query = """ UPDATE news_articles na
                 """
 
 
-get_Article_by_date_and_category_query = """
+get_article_by_date_and_category_query = """
             SELECT 
                 na.*, 
                 c.name AS category_name,

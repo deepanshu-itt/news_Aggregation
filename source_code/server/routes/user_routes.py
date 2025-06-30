@@ -95,15 +95,15 @@ def get_news():
     end =  request.args.get('end_date')
     user_id = request.headers.get('X-User-Id')
     article_filters = NewsService.create_article_filter(start, end, user_id)
-    if search_query:
-        articles = NewsService.search_articles(search_query)
     
+    if search_query and start and end:
+        articles = NewsService.search_articles_by_range(search_query, start, end)
+    elif search_query:
+        articles = NewsService.search_articles(search_query)
     elif start != None  and end != None and category_name != None :
         articles = NewsService.get_headlines_by_date_and_Category(article_filters, category_name = category_name)
-    
     elif start != None  and end != None :
         articles = NewsService.get_headlines_by_date_and_Category(article_filters)
-    
     else:
         print("Invalid data for searching Articles")
         jsonify({"success": False, "message": "Missing searching data."}), 403

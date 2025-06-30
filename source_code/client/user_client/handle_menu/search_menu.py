@@ -40,6 +40,8 @@ class SearchMenu:
             user_query = input("Enter keyword(s): ").strip()
             if not user_query:
                 print("Search query can't be empty.")
+            else:
+                return user_query
     
     
     def __handle_response(self, response):

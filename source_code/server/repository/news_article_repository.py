@@ -8,16 +8,17 @@ from dto.news_article_dto import NewsArticleDto
 from dto.cursor_dto import CursorDto
 from repository.mysql_queries.news_article_queries import (
     create_news_article_query,
-    get_Article_by_date_range_query,
+    get_article_by_date_range_query,
     get_article_by_url_query,
     get_all_articles_query,
-    get_Article_by_date_and_category_query,
+    get_article_by_date_and_category_query,
     get_article_by_id_query,
     get_article_by_keyword_query,
     get_user_saved_Article_query,
     hide_article_by_category_query,
     hide_article_by_keyword_table_query,
-    update_article_view_query
+    update_article_view_query,
+    get_article_by_keyword_and_range_query
 )
 
 
@@ -59,15 +60,15 @@ class NewsArticleRepository(INewsArticleRepository):
     def find_by_url(self, url: str) -> Optional[NewsArticle]:
         query = get_article_by_url_query
         cursor_params = CursorDto(query=query, params=(url,), fetch_one=True)
-        row = db.execute_query(cursor_params)
-        return self._map_row_to_article(row) if row else None
+        article_row = db.execute_query(cursor_params)
+        return self._map_row_to_article(article_row) if article_row else None
 
 
     def find_by_id(self, article_id: int) -> Optional[NewsArticle]:
         query = get_article_by_id_query
         cursor_params = CursorDto(query=query, params=(article_id,), fetch_one=True)
-        row = db.execute_query(cursor_params)
-        return self._map_row_to_article(row) if row else None
+        article_row = db.execute_query(cursor_params)
+        return self._map_row_to_article(article_row) if article_row else None
 
     
     def update_article_view_count(self, article_id):
@@ -89,26 +90,19 @@ class NewsArticleRepository(INewsArticleRepository):
             params += [like, like, like]
         sql += " ORDER BY na.published_at DESC"
         cursor_params = CursorDto(query= sql, params=tuple(params), fetch_all=True)
-        rows = db.execute_query(cursor_params)
-        return [self._map_row_to_article(row) for row in rows] if rows else []
+        all_article_rows = db.execute_query(cursor_params)
+        return [self._map_row_to_article(article_row) for article_row in all_article_rows] if all_article_rows else []
 
 
     def get_by_date_range(self, start_date, end_date) -> List[NewsArticle]:
         
-        if isinstance(start_date, str):
-            start_date = datetime.strptime(start_date.split(" ")[0], "%Y-%m-%d").date()
-            end_date = datetime.strptime(end_date.split(" ")[0], "%Y-%m-%d").date()
-
-        start_dt = datetime.combine(start_date, datetime.min.time())
-        end_dt = datetime.combine(end_date, datetime.max.time())
-
-        query = get_Article_by_date_range_query
-        
-        params = [start_dt, end_dt]
+        start_date, end_date = self._normalize_date_range(start_date, end_date)
+        query = get_article_by_date_range_query
+        params = [start_date, end_date]
 
         cursor_params = CursorDto(query=query, params=tuple(params), fetch_all=True)
-        rows = db.execute_query(cursor_params)
-        return [self._map_row_to_article(rows) for rows in rows] if rows else []
+        all_article_rows = db.execute_query(cursor_params)
+        return [self._map_row_to_article(article_row) for article_row in all_article_rows] if all_article_rows else []
     
     
 
@@ -117,16 +111,26 @@ class NewsArticleRepository(INewsArticleRepository):
         query = get_article_by_keyword_query
         params = (like, like, like)
         cursor_params = CursorDto(query=query, params=params, fetch_all=True)
-        rows = db.execute_query(cursor_params)
-        return [self._map_row_to_article(rows) for rows in rows] if rows else []
+        all_article_rows = db.execute_query(cursor_params)
+        return [self._map_row_to_article(article_row) for article_row in all_article_rows] if all_article_rows else []
+    
+    
+    def search_by_keyword_and_range(self, keyword: str, start_date, end_date) -> List[NewsArticle]:
+        start_date, end_date = self._normalize_date_range(start_date, end_date)
+        query = get_article_by_keyword_and_range_query
+        like = f"%{keyword}%"
+        params = (start_date, end_date, like, like, like)
+        cursor_params = CursorDto(query=query, params=params, fetch_all=True)
+        all_article_rows = db.execute_query(cursor_params)
+        return [self._map_row_to_article(article_row) for article_row in all_article_rows] if all_article_rows else []
 
 
     def get_saved_by_user(self, user_id: int) -> List[NewsArticle]:
         query = get_user_saved_Article_query
         params = (user_id,)
         cursor_params = CursorDto(query=query, params=params, fetch_all=True)
-        rows = db.execute_query(cursor_params)
-        return [self._map_row_to_article(r) for r in rows] if rows else []
+        all_article_rows = db.execute_query(cursor_params)
+        return [self._map_row_to_article(article_row) for article_row in all_article_rows] if all_article_rows else []
 
 
     def hide_by_keyword_table(self):
@@ -147,7 +151,7 @@ class NewsArticleRepository(INewsArticleRepository):
         user_id = filters["user_id"]
         category_id = filters.get("category_id")
 
-        query = get_Article_by_date_and_category_query
+        query = get_article_by_date_and_category_query
 
         params = [user_id, user_id, user_id, start_dt, end_dt]
 
@@ -160,12 +164,12 @@ class NewsArticleRepository(INewsArticleRepository):
             ORDER BY relevance_score DESC, na.views DESC
         """
         cursor_params = CursorDto(query=query, params=tuple(params), fetch_all=True)
-        rows = db.execute_query(cursor_params)
+        all_article_rows = db.execute_query(cursor_params)
 
-        if rows:
-            for row in rows:
-                row.pop('relevance_score', None)
-            return [self._map_row_to_article(row) for row in rows]
+        if all_article_rows:
+            for article_row in all_article_rows:
+                article_row.pop('relevance_score', None)
+            return [self._map_row_to_article(article_row) for article_row in all_article_rows]
         return []
 
 

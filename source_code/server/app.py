@@ -19,5 +19,5 @@ if __name__ == '__main__':
     ).wasSuccessful()
 
     if tests_passed:
-        # start_scheduler(app.config)
+        start_scheduler(app.config)
         app.run(debug=True, host='0.0.0.0', port=5000)
