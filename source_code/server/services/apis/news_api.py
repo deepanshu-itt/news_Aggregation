@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Optional
 from interfaces.news_api import INewsAPI
 
+
 class NewsAPIOrg(INewsAPI):
     def __init__(self, base_url: str, api_key: str):
         self.base_url = base_url

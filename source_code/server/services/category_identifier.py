@@ -15,6 +15,7 @@ class CategoryIdentifier:
 
         return category_id
 
+
     @staticmethod
     def _get_existing_or_new_category(article:dict, existing_categories, category_repository: CategoryRepository):
         category_name = article.get('category')

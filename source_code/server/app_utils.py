@@ -7,7 +7,9 @@ def load_external_server_keys_into_app_config(flask_app_config):
         if not external_servers:
             return
 
-        api_keys_from_db = {server.name.lower(): server.api_key for server in external_servers if hasattr(server, 'name') and hasattr(server, 'api_key')}
+        api_keys_from_db = {server.name.lower(): server.api_key 
+                        for server in external_servers 
+                        if hasattr(server, 'name') and hasattr(server, 'api_key')}
 
         if 'newsapi.org' in api_keys_from_db:
             flask_app_config['NEWSAPI_ORG_API_KEY'] = api_keys_from_db['newsapi.org']

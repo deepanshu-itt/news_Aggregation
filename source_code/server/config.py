@@ -26,8 +26,7 @@ class Config:
     ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@example.com')
 
 
-    def __setattr__(self, name, value):
-    
+    def __setattr__(self, name, value):    
         super().__setattr__(name, value)
 
 

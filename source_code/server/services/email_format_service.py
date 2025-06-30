@@ -13,7 +13,7 @@ class EmailContentFormatter:
     
 
     @staticmethod
-    def build_email_content_from_articles(articles: List, body_lines):
+    def build_email_content_from_articles(articles, body_lines):
     
         for index, article in enumerate(articles):
             body_lines += (
