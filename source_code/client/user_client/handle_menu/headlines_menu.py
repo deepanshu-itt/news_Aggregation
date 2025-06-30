@@ -80,8 +80,10 @@ class HeadlinesMenu:
                 return self.safe_execute(self.user_service.logout)
             elif choice == '3':
                 self.safe_execute(self._handle_article_details)
-            elif choice in ['4', '5']:
-                self.safe_execute(self._handle_like_dislike, choice)
+            elif choice == '4':
+                self.safe_execute(self._handle_save_article)
+            elif choice in '5':
+                self.safe_execute(self._react_to_article, choice)
             elif choice == '6':
                 self.safe_execute(self._handle_report_article)
             else:
@@ -106,7 +108,7 @@ class HeadlinesMenu:
             print("No Article Information Available.")
 
 
-    def _handle_like_dislike(self, choice):
+    def _handle_save_article(self, choice):
         article_id = self.safe_execute(get_valid_article_id)
         if not article_id:
             return

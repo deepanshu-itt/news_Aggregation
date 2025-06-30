@@ -6,7 +6,19 @@ from datetime import datetime
 from typing import List, Optional
 from dto.news_article_dto import NewsArticleDto
 from dto.cursor_dto import CursorDto
-from repository.mysql_queries.news_article_queries import create_news_article_query
+from repository.mysql_queries.news_article_queries import (
+    create_news_article_query,
+    get_Article_by_date_range_query,
+    get_article_by_url_query,
+    get_all_articles_query,
+    get_Article_by_date_and_category_query,
+    get_article_by_id_query,
+    get_article_by_keyword_query,
+    get_user_saved_Article_query,
+    hide_article_by_category_query,
+    hide_article_by_keyword_table_query,
+    update_article_view_query
+)
 
 
 class NewsArticleRepository(INewsArticleRepository):
@@ -45,14 +57,14 @@ class NewsArticleRepository(INewsArticleRepository):
 
 
     def find_by_url(self, url: str) -> Optional[NewsArticle]:
-        query = "SELECT * FROM news_articles WHERE url = %s"
+        query = get_article_by_url_query
         cursor_params = CursorDto(query=query, params=(url,), fetch_one=True)
         row = db.execute_query(cursor_params)
         return self._map_row_to_article(row) if row else None
 
 
     def find_by_id(self, article_id: int) -> Optional[NewsArticle]:
-        query = "SELECT * FROM news_articles WHERE id = %s"
+        query = get_article_by_id_query
         cursor_params = CursorDto(query=query, params=(article_id,), fetch_one=True)
         row = db.execute_query(cursor_params)
         return self._map_row_to_article(row) if row else None
@@ -60,21 +72,13 @@ class NewsArticleRepository(INewsArticleRepository):
     
     def update_article_view_count(self, article_id):
 
-        query = """ UPDATE news_articles
-                    SET views = views + 1
-                    WHERE id = %s;
-                """
+        query = update_article_view_query
         params = (article_id,)
         cursor_params = CursorDto(query=query, params= params, fetch_one=True)
         db.execute_query(cursor_params)
 
     def get_articles(self, category_id=None, search_query=None) -> List[NewsArticle]:
-        sql = """
-        SELECT na.*, c.name AS category_name
-        FROM news_articles na
-        JOIN categories c ON na.category_id = c.id
-        WHERE 1=1
-        """
+        sql = get_all_articles_query
         params = []
         if category_id:
             sql += " AND na.category_id = %s"
@@ -98,24 +102,10 @@ class NewsArticleRepository(INewsArticleRepository):
         start_dt = datetime.combine(start_date, datetime.min.time())
         end_dt = datetime.combine(end_date, datetime.max.time())
 
-        query = """
-            SELECT 
-                na.*, 
-                c.name AS category_name,
-                COALESCE(SUM(ar.reaction = 'like'), 0) AS like_count,
-                COALESCE(SUM(ar.reaction = 'dislike'), 0) AS dislike_count
-            FROM news_articles na
-            JOIN categories c ON na.category_id = c.id
-            LEFT JOIN article_reactions ar ON na.id = ar.article_id
-            WHERE na.is_hidden != 1 AND na.published_at BETWEEN %s AND %s
-        """
+        query = get_Article_by_date_range_query
         
         params = [start_dt, end_dt]
 
-        query += """
-            GROUP BY na.id 
-            ORDER BY na.published_at DESC
-        """
         cursor_params = CursorDto(query=query, params=tuple(params), fetch_all=True)
         rows = db.execute_query(cursor_params)
         return [self._map_row_to_article(rows) for rows in rows] if rows else []
@@ -124,19 +114,7 @@ class NewsArticleRepository(INewsArticleRepository):
 
     def search_by_keyword(self, keyword: str) -> List[NewsArticle]:
         like = f"%{keyword}%"
-        query = """
-        SELECT 
-            na.*, 
-            c.name AS category_name,
-            COALESCE(SUM(ar.reaction = 'like'), 0) AS like_count,
-            COALESCE(SUM(ar.reaction = 'dislike'), 0) AS dislike_count
-        FROM news_articles na
-        JOIN categories c ON na.category_id = c.id
-        LEFT JOIN article_reactions ar ON na.id = ar.article_id
-        WHERE na.is_hidden != 1 AND na.title LIKE %s OR na.description LIKE %s OR na.raw_data LIKE %s
-        GROUP BY na.id
-        ORDER BY na.published_at DESC
-        """
+        query = get_article_by_keyword_query
         params = (like, like, like)
         cursor_params = CursorDto(query=query, params=params, fetch_all=True)
         rows = db.execute_query(cursor_params)
@@ -144,20 +122,7 @@ class NewsArticleRepository(INewsArticleRepository):
 
 
     def get_saved_by_user(self, user_id: int) -> List[NewsArticle]:
-        query = """
-        SELECT 
-            na.*, 
-            c.name AS category_name,
-            COALESCE(SUM(ar.reaction = 'like'), 0) AS like_count,
-            COALESCE(SUM(ar.reaction = 'dislike'), 0) AS dislike_count
-        FROM saved_articles sa
-        JOIN news_articles na ON sa.article_id = na.id
-        JOIN categories c ON na.category_id = c.id
-        LEFT JOIN article_reactions ar ON na.id = ar.article_id
-        WHERE na.is_hidden != 1 AND sa.user_id = %s 
-        GROUP BY na.id
-        ORDER BY sa.saved_at DESC
-        """
+        query = get_user_saved_Article_query
         params = (user_id,)
         cursor_params = CursorDto(query=query, params=params, fetch_all=True)
         rows = db.execute_query(cursor_params)
@@ -165,24 +130,14 @@ class NewsArticleRepository(INewsArticleRepository):
 
 
     def hide_by_keyword_table(self):
-        query = """UPDATE news_articles
-                    SET is_hidden = 1
-                    WHERE EXISTS (
-                        SELECT 1
-                        FROM article_filters
-                        WHERE news_articles.title LIKE CONCAT('%', article_filters.keyword, '%')
-                    )"""
+        query = hide_article_by_keyword_table_query
         cursor_params = CursorDto(query=query,fetch_one=True)
         db.execute_query(cursor_params)
 
 
     def hide_by_category_table(self):
 
-        query = """ UPDATE news_articles na
-                    JOIN categories c ON na.category_id = c.id
-                    SET na.is_hidden = 1
-                    WHERE c.is_hidden = 1
-                """
+        query = hide_article_by_category_query
         cursor_params = CursorDto(query=query, fetch_one=True)
         db.execute_query(cursor_params)
 
@@ -192,36 +147,7 @@ class NewsArticleRepository(INewsArticleRepository):
         user_id = filters["user_id"]
         category_id = filters.get("category_id")
 
-        query = """
-            SELECT 
-                na.*, 
-                c.name AS category_name,
-                COALESCE(SUM(ar.reaction = 'like'), 0) AS like_count,
-                COALESCE(SUM(ar.reaction = 'dislike'), 0) AS dislike_count,
-                (
-                    CASE WHEN JSON_CONTAINS(un.category_preferences, JSON_QUOTE(c.name)) THEN 3 ELSE 0 END
-                    +
-                    CASE 
-                        WHEN JSON_CONTAINS(un.category_preferences, JSON_QUOTE(c.name)) 
-                            AND (na.title LIKE CONCAT('%', c.name, '%') 
-                            OR na.description LIKE CONCAT('%', c.name, '%')) THEN 2
-                        ELSE 0 
-                    END
-                    +
-                    CASE WHEN sa.article_id IS NOT NULL THEN 2 ELSE 0 END
-                    +
-                    CASE WHEN ar_filter.article_id IS NOT NULL THEN 1 ELSE 0 END
-                ) AS relevance_score
-
-            FROM news_articles na
-            JOIN categories c ON na.category_id = c.id
-            LEFT JOIN article_reactions ar ON na.id = ar.article_id
-            LEFT JOIN user_notifications un ON un.user_id = %s
-            LEFT JOIN saved_articles sa ON sa.article_id = na.id AND sa.user_id = %s
-            LEFT JOIN article_reactions ar_filter ON ar_filter.article_id = na.id AND ar_filter.user_id = %s AND ar_filter.reaction = 'like'
-
-            WHERE na.is_hidden != 1 AND na.published_at BETWEEN %s AND %s
-        """
+        query = get_Article_by_date_and_category_query
 
         params = [user_id, user_id, user_id, start_dt, end_dt]
 
@@ -252,5 +178,3 @@ class NewsArticleRepository(INewsArticleRepository):
         start_dt = datetime.combine(start_date, datetime.min.time())
         end_dt = datetime.combine(end_date, datetime.max.time())
         return start_dt, end_dt
-
-    

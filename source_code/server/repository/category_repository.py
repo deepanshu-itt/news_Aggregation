@@ -1,6 +1,15 @@
 from models.category import Category
 from database import database
 from dto.cursor_dto import CursorDto
+from repository.mysql_queries.category_queries import (
+    create_category_query,
+    find_by_id_query,
+    find_by_name_query,
+    get_all_categories_query,
+    get_category_id_query,
+    hide_category_query,
+    unhide_category_query
+)
 
 
 class CategoryRepository:
@@ -8,7 +17,7 @@ class CategoryRepository:
         self._db = db
 
     def create(self, name: str) -> Category | None:
-        query = "INSERT INTO categories (name, is_hidden) VALUES (%s)"
+        query = create_category_query
         cursor_params = CursorDto(query=query, params=(name, False), commit=True)
         try:
             category_id = self._db.execute_query(cursor_params)
@@ -23,35 +32,35 @@ class CategoryRepository:
 
 
     def find_by_name(self, name: str) -> Category | None:
-        query = "SELECT * FROM categories WHERE name = %s"
+        query = find_by_name_query 
         cursor_params = CursorDto(query=query, params=(name,),  fetch_one=True)
         data = self._db.execute_query(cursor_params)
         return Category(**data) if data else None
 
 
     def find_by_id(self, category_id: int) -> Category | None:
-        query = "SELECT * FROM categories WHERE id = %s"
+        query = find_by_id_query
         cursor_params = CursorDto(query=query, params=(category_id,),  fetch_one=True)
         data = self._db.execute_query(cursor_params)
         return Category(**data) if data else None
 
 
     def get_all(self) -> list[Category]:
-        query = "SELECT * FROM categories ORDER BY id"
+        query = get_all_categories_query
         cursor_params = CursorDto(query=query, fetch_all=True)
         data = self._db.execute_query(cursor_params)
         return [Category(**row) for row in data] if data else []
 
 
     def get_category_id(self, name: str) -> int | None:
-        query = "SELECT id FROM categories WHERE name = %s"
+        query = get_category_id_query
         cursor_params = CursorDto(query=query, params=(name,),  fetch_one=True)
         data = self._db.execute_query(cursor_params)
         return data['id'] if data else None
 
     
     def hideCategory(self, category_id: int):
-        query = "update categories SET is_hidden = 1 WHERE id = %s"
+        query = hide_category_query
         cursor_params = CursorDto(query=query, params=(category_id,),  fetch_one=True)
         data = self._db.execute_query(cursor_params)
         query = "update news_articles set is_hidden =1 where category_id = %s"
@@ -61,7 +70,7 @@ class CategoryRepository:
     
     
     def unhideCategory(self, category_id: int):
-        query = "update categories SET is_hidden = 0 WHERE id = %s"
+        query = unhide_category_query
         cursor_params = CursorDto(query=query, params=(category_id,),  fetch_one=True)
         data = self._db.execute_query(cursor_params)
         query = "update news_articles set is_hidden =0 where category_id = %s"

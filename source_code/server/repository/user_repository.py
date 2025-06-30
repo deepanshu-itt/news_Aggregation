@@ -6,13 +6,21 @@ from models.user import User
 from interfaces.user import IUser
 import json
 from dto.cursor_dto import CursorDto
+from repository.mysql_queries.user_queries import (
+    create_user_query,
+    get_user_by_email,
+    get_user_by_id_query,
+    get_user_by_username,
+    get_user_preferences_by_id_query,
+    update_user_preferences_by_id_query
+)
 
 
 class UserRepository(IUser):
     
     def create(self, username: str, email: str, password: str, role: str = 'user') -> Optional[User]:
         hashed_password = generate_password_hash(password)
-        query = "INSERT IGNORE INTO users (username, email, password_hash, role) VALUES (%s, %s, %s, %s)"
+        query = create_user_query
         cursor_params = CursorDto(query=query, params=(username, email, hashed_password, role), commit=True)
         try:
             user_id = db.execute_query(cursor_params)
@@ -24,21 +32,21 @@ class UserRepository(IUser):
 
 
     def find_by_user_id(self, user_id: int) -> Optional[User]:
-        query = "SELECT * FROM users WHERE id = %s"
+        query = get_user_by_id_query 
         cursor_params = CursorDto(query=query, params=(user_id,), fetch_one=True)
         data = db.execute_query(cursor_params)
         return User(**data) if data else None
 
 
     def find_by_username(self, username: str) -> Optional[User]:
-        query = "SELECT * FROM users WHERE username = %s"
+        query = get_user_by_username
         cursor_params = CursorDto(query=query, params=(username,), fetch_one=True)
         data = db.execute_query(cursor_params)
         return User(**data) if data else None
 
 
     def find_by_email(self, email: str) -> Optional[User]:
-        query = "SELECT * FROM users WHERE email = %s"
+        query = get_user_by_email
         cursor_params = CursorDto(query=query, params=(email,), fetch_one=True)
         data = db.execute_query(cursor_params)
         return User(**data) if data else None
@@ -94,7 +102,7 @@ class UserRepository(IUser):
 
 
     def __update_user_preferences(self, userid, updated_preferences):
-        update_query = "UPDATE user_notifications SET category_preferences = %s WHERE user_id = %s"
+        update_query = update_user_preferences_by_id_query
         cursor_params = CursorDto(
             query=update_query,
             params=(json.dumps(updated_preferences), userid),
@@ -105,7 +113,7 @@ class UserRepository(IUser):
 
 
     def __fetch_user_preferences(self, userid):
-        query = "SELECT category_preferences FROM user_notifications WHERE user_id = %s"
+        query = get_user_preferences_by_id_query
         cursor_params = CursorDto(query=query, params=(userid,), fetch_one=True)
         result: dict = db.execute_query(cursor_params)
 

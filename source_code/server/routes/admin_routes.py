@@ -27,7 +27,7 @@ def get_all_servers():
         "success": True,
         "servers": filtered_servers
     }), 200
-    
+
 
 @admin_bp.route('/categories', methods=['POST'])
 @admin_required

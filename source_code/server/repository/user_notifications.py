@@ -4,13 +4,19 @@ from typing import Optional, List
 from models.user_notification import UserNotification
 from interfaces.user_notifications import IUserNotifications
 from dto.cursor_dto import CursorDto
+from repository.mysql_queries.user_notifications_queries import (
+    create_user_notification_query,
+    get_all_users_for_email,
+    get_user_notification_by_id_query,
+    update_user_notifications_query
+)
 
 
 class UserNotificationRepository(IUserNotifications):
     
     
     def find_by_user_id(self, user_id: int) -> Optional[UserNotification]:
-        query = "SELECT * FROM user_notifications WHERE user_id = %s"
+        query = get_user_notification_by_id_query
         cursor_params = CursorDto(query=query, params=(user_id,), fetch_one=True)
         row = db.execute_query(cursor_params)
 
@@ -50,30 +56,19 @@ class UserNotificationRepository(IUserNotifications):
         prefs_json = json.dumps(category_preferences or [])
 
         if existing:
-            query = """
-                UPDATE user_notifications
-                SET category_preferences = %s
-                WHERE user_id = %s
-            """
+            query = update_user_notifications_query
             cursor_params = CursorDto(query=query, params=(prefs_json, user_id), commit=True)
             db.execute_query(cursor_params)
             return UserNotification(existing.id, user_id, category_preferences, user_email)
         else:
-            query = """
-                INSERT INTO user_notifications (user_id, category_preferences, email)
-                VALUES (%s, %s, %s)
-            """
+            query = create_user_notification_query
             cursor_params = CursorDto(query=query, params=(user_id, prefs_json, user_email), commit=True)
             new_id = db.execute_query(cursor_params)
             return UserNotification(new_id, user_id, category_preferences, user_email)
 
 
     def get_users_for_daily_digest(self) -> List[UserNotification]:
-        query = """
-            SELECT un.*, u.email 
-            FROM user_notifications un 
-            JOIN users u ON un.user_id = u.id 
-        """
+        query = get_all_users_for_email
 
         cursor_params = CursorDto(query=query, fetch_all=True)
         rows = db.execute_query(cursor_params)

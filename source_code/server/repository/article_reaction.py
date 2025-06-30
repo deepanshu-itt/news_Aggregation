@@ -1,7 +1,9 @@
 from interfaces.article_reaction import IArticleReaction
 from database import database
 from dto.cursor_dto import CursorDto
-from repository.mysql_queries.article_reaction_queries import  (upsert_reaction_query, get_reaction_count_query)
+from repository.mysql_queries.article_reaction_queries import(
+    upsert_reaction_query, get_reaction_count_query)
+
 
 class ArticleReactionRepository(IArticleReaction):
     def __init__(self, database_connection: database):
