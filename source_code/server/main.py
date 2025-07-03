@@ -19,11 +19,6 @@ def create_app():
         sys.exit(1)
 
 
-    # @admin_bp.after_request
-    # def refresh_admin_config(response):
-    #     load_external_server_keys_into_app_config(app.config)
-    #     return response
-
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
     app.register_blueprint(user_bp, url_prefix='/api/user')

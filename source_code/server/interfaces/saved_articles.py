@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List
 from models.saved_article import SavedArticle
+
+
 class ISavedArticle(ABC):
     @abstractmethod
     def create(self, user_id: int, article_id: int) -> Optional[SavedArticle]:

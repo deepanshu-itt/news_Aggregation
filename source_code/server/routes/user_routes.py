@@ -80,6 +80,7 @@ def unsave_article_route():
 @user_bp.route('/articles/saved', methods=['GET'])
 @login_required
 def get_user_saved_articles_route():
+
     user_id = request.headers.get('X-User-Id')
     result = user_service.get_user_saved_articles(user_id)
     return jsonify(result), 200

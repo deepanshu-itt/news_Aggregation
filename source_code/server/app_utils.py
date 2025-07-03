@@ -1,11 +1,10 @@
 from repository.mysql_external_server_repository import MySQLExternalServerRepository
 
 def load_external_server_keys_into_app_config(flask_app_config):
+    response = True
     try:
         external_api_manager = MySQLExternalServerRepository()
         external_servers = external_api_manager.get_all()
-        if not external_servers:
-            return
 
         api_keys_from_db = {server.name.lower(): server.api_key 
                         for server in external_servers 
@@ -19,4 +18,7 @@ def load_external_server_keys_into_app_config(flask_app_config):
     
     except Exception as error:
         print(error)
+        response = False
         pass
+
+    return response

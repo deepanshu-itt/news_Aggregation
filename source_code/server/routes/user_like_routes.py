@@ -28,13 +28,3 @@ def react_to_article(article_id):
     except Exception:
         print(error)
         return jsonify({"success": False,"error": "Something went wrong"}), 500
-
-
-# @article_reaction_bp.route('/articles/<int:article_id>/<string:reaction_type>', methods=['GET'])
-# def get_reaction_count(article_id: int, reaction_type: str):
-#     service = get_service()
-#     try:
-#         count = service.get_count(article_id, reaction_type.lower())
-#         return jsonify({"success": True,"article_id": article_id, reaction_type: count}), 200
-#     except Exception:
-#         return jsonify({"success": False,"error": "Something went wrong"}), 500

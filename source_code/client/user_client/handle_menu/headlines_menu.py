@@ -37,8 +37,8 @@ class HeadlinesMenu:
 
 
     def _show_headlines(self, start_date, end_date):
-        categories_resp = self.safe_execute(self.api_client.make_request, 'GET', 'user/categories', current_user=self.get_user())
-        categories = categories_resp.get("categories", []) if categories_resp else []
+        categories_response = self.safe_execute(self.api_client.make_request, 'GET', 'user/categories', current_user=self.get_user())
+        categories = categories_response.get("categories", []) if categories_response else []
         category_map = {'1': None}
 
         self._print_categories_manage_menu(categories, category_map)

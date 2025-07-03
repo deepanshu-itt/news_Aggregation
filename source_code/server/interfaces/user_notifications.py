@@ -13,8 +13,6 @@ class IUserNotifications(ABC):
         self,
         user_id: int,
         user_email: str,
-        email_enabled: bool,
-        daily_digest_enabled: bool,
         category_preferences: List[int],
     ) -> UserNotification:
         pass

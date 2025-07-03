@@ -6,6 +6,7 @@ from models.user import User
 from interfaces.user import IUser
 import json
 from dto.cursor_dto import CursorDto
+from dto.user_dto import UserDto
 from repository.mysql_queries.user_queries import (
     create_user_query,
     get_user_by_email,
@@ -18,13 +19,15 @@ from repository.mysql_queries.user_queries import (
 
 class UserRepository(IUser):
     
-    def create(self, username: str, email: str, password: str, role: str = 'user') -> Optional[User]:
-        hashed_password = generate_password_hash(password)
+    def create(self, user_data: UserDto) -> Optional[User]:
+        hashed_password = generate_password_hash(user_data.password)
         query = create_user_query
-        cursor_params = CursorDto(query=query, params=(username, email, hashed_password, role), commit=True)
+        cursor_params = CursorDto(query=query, params=(user_data.username, 
+                                user_data.email, hashed_password, user_data.role), commit=True)
+        
         try:
             user_id = db.execute_query(cursor_params)
-            return User(user_id, username, email, hashed_password, role) if user_id else None
+            return User(user_id, user_data.username, user_data.email, hashed_password, user_data.role) if user_id else None
         except Error as error:
             if error.errno == 1062:
                 raise ValueError("Duplicate username or email")

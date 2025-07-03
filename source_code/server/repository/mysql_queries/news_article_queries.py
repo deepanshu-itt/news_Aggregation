@@ -1,8 +1,8 @@
 
 
 create_news_article_query = """
-        INSERT INTO news_articles (title, description, url, image_url, published_at, source, category_id, raw_data, is_hidden, report_count)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0, 0)
+        INSERT INTO news_articles (title, description, url, image_url, published_at, source, category_id, raw_data, is_hidden, report_count, views)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0, 0, 0)
         """
 
 get_article_by_url_query = "SELECT * FROM news_articles WHERE url = %s"

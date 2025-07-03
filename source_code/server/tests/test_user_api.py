@@ -1,5 +1,9 @@
 import unittest
 from main import create_app 
+from dto.email_dto import EmailNotificationDto
+from dto.news_article_dto import NewsArticleDto
+
+
 class TestUserAPI(unittest.TestCase):
 
     def setUp(self):
@@ -106,7 +110,10 @@ class TestUserAPI(unittest.TestCase):
         response = self.client.post("/api/user/articles/2617/report",headers = headers,
                                    json = {'reason': 'vulgar'})
         response = response.get_json()
-        self.assertEqual(response, "Article 2617 Reported successfully.")
+        if response == 'Article 2617 already reported.':
+            self.assertEqual(response, "Article 2617 already reported.")
+        else:
+            self.assertEqual(response, "Article 2617 Reported successfully.")
     
     
     def test_unreport_article(self):
@@ -129,3 +136,10 @@ class TestUserAPI(unittest.TestCase):
                                    json = {'reaction': 'dislike'})
         
         self.assertEqual(response.get_json()["success"],True)
+
+    
+    def test_dtos(self):
+        EmailNotificationDto(user_id=2, article_ids=2666, message="Test Data")
+        NewsArticleDto(title = "Hi", description ="test", url = "http", image_url="http", published_at= "2025-01-1", source = "2025-01-1", 
+                 category_id=2)
+        

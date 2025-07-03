@@ -21,6 +21,6 @@ class ArticleReactionRepository(IArticleReaction):
     def get_reaction_count(self, article_id: int, reaction: str) -> int:
         cursor_params = CursorDto(query=get_reaction_count_query, params=(article_id, reaction), commit=True)
         try:
-            return ArticleReactionRepository(**self._db.execute_query(cursor_params))
+            return self._db.execute_query(cursor_params)
         except Exception as error:
             print(f"Error creating category: {error}")

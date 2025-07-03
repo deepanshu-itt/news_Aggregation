@@ -1,5 +1,6 @@
 import unittest
 from main import create_app 
+from app_utils import load_external_server_keys_into_app_config
 
 
 class TestAdminAPI(unittest.TestCase):

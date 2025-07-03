@@ -8,7 +8,9 @@ from repository.mysql_queries.category_queries import (
     get_all_categories_query,
     get_category_id_query,
     hide_category_query,
-    unhide_category_query
+    unhide_category_query,
+    hide_articles_by_category_query,
+    unhide_articles_by_category_query
 )
 
 
@@ -18,11 +20,11 @@ class CategoryRepository:
 
     def create(self, name: str) -> Category | None:
         query = create_category_query
-        cursor_params = CursorDto(query=query, params=(name, False), commit=True)
+        cursor_params = CursorDto(query=query, params=(name, 0), commit=True)
         try:
             category_id = self._db.execute_query(cursor_params)
             if category_id:
-                return Category(category_id, name)
+                return Category(category_id, name, False)
         except Exception as error:
             if "Duplicate entry" in str(error):
                 print(f"Category '{name}' already exists.")
@@ -63,7 +65,7 @@ class CategoryRepository:
         query = hide_category_query
         cursor_params = CursorDto(query=query, params=(category_id,),  fetch_one=True)
         data = self._db.execute_query(cursor_params)
-        query = "update news_articles set is_hidden =1 where category_id = %s"
+        query = hide_articles_by_category_query
         cursor_params = CursorDto(query=query, params=(category_id,),  fetch_one=True)
         data = self._db.execute_query(cursor_params)
         return data['id'] if data else None
@@ -73,7 +75,7 @@ class CategoryRepository:
         query = unhide_category_query
         cursor_params = CursorDto(query=query, params=(category_id,),  fetch_one=True)
         data = self._db.execute_query(cursor_params)
-        query = "update news_articles set is_hidden =0 where category_id = %s"
+        query = unhide_articles_by_category_query
         cursor_params = CursorDto(query=query, params=(category_id,),  fetch_one=True)
         data = self._db.execute_query(cursor_params)
         return data['id'] if data else None

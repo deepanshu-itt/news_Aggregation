@@ -20,7 +20,7 @@ db = Database(mysql_connection)
 class EmailNotificationRepository(IEmailNotificationRepository):
 
 
-    def _map_row_to_notification(self, row) -> EmailNotification:
+    def __map_row_to_notification(self, row) -> EmailNotification:
         article_ids = json.loads(row["article_ids"]) if isinstance(row["article_ids"], str) else row["article_ids"]
         return EmailNotification(
             id=row["id"],
@@ -53,7 +53,7 @@ class EmailNotificationRepository(IEmailNotificationRepository):
         query = get_notification_by_user_query
         cursor_params = CursorDto(query=query, params=(user_id,),fetch_all=True)
         rows = db.execute_query(cursor_params)
-        return [self._map_row_to_notification(row) for row in rows] if rows else []
+        return [self.__map_row_to_notification(row) for row in rows] if rows else []
 
 
     def delete(self, notification_id: int) -> bool:

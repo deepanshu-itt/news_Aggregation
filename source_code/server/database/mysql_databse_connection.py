@@ -27,7 +27,7 @@ class MySQLDatabaseConnection(IDatabaseConnection):
             if self._connection.is_connected():
                 print(f"Connected to MySQL database: {self._config.MYSQL_DB}")
         except Error as error:
-            print(f"Error connecting to MySQL: {error}")
+            print(f"Error connecting to MySQL")
             self._connection = None
 
 
