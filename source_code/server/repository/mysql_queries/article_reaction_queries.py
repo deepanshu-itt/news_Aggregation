@@ -1,7 +1,7 @@
 upsert_reaction_query = """
         INSERT IGNORE INTO article_reactions (user_id, article_id, reaction)
-        VALUES (%s, %s, %s)
-        ON DUPLICATE KEY UPDATE reaction = VALUES(reaction), reacted_at = CURRENT_TIMESTAMP
+        VALUES (%s, %s, %s) as new
+        ON DUPLICATE KEY UPDATE reaction = new.reaction, reacted_at = CURRENT_TIMESTAMP
         """
 
 

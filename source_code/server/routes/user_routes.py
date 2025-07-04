@@ -156,6 +156,10 @@ def unreport_article(article_id):
 
 @user_bp.route('/article', methods=['GET'])
 def get_article_details_route():
+    print("ed")
     article_id = request.args.get('article_id')
+    print("here is ", article_id)
+    if not article_id:
+        return jsonify({"success": False, "message": "Ärticle ID not specified"}), 200
     result, status_code = user_service.get_article_details(article_id)
     return jsonify(result), status_code

@@ -1,5 +1,5 @@
 from news_api import NewsAPIClient
-
+from dto.news_api_dto import NewsApiDto
 
 class ArticleService:
     def __init__(self, api_client: NewsAPIClient, get_user):
@@ -7,22 +7,59 @@ class ArticleService:
         self.get_user = get_user
 
     def get_saved_articles(self):
-        return self.api_client.make_request('GET', 'user/articles/saved', current_user=self.get_user())
+        get_saved_articles_dto = NewsApiDto(
+            method='GET',
+            endpoint='user/articles/saved',
+            current_user=self.get_user()
+        )
+        return self.api_client.make_request(get_saved_articles_dto)
 
 
     def save_article(self, article_id):
-        return self.api_client.make_request('POST', 'user/articles/save', 
-                                {'article_id': article_id}, current_user=self.get_user())
+        save_article_dto = NewsApiDto(
+            method='POST',
+            endpoint='user/articles/save',
+            data= {'article_id': article_id},
+            current_user=self.get_user()
+        )
+        return self.api_client.make_request(save_article_dto)
+
 
     def delete_article(self, article_id):
-        return self.api_client.make_request('POST', 'user/articles/unsave',
-                                {'article_id': article_id}, current_user=self.get_user())
+        get_saved_articles_dto = NewsApiDto(
+            method='POST',
+            endpoint='user/articles/unsave',
+            data={'article_id': article_id},
+            current_user=self.get_user()
+        )
+        return self.api_client.make_request(get_saved_articles_dto)
 
     def react_to_article(self, article_id, reaction):
-        return self.api_client.make_request('POST', f'user/articles/{article_id}/react',
-                                {'reaction': reaction}, current_user=self.get_user())
+        react_to_article_dto = NewsApiDto(
+            method='POST',
+            endpoint=f'user/articles/{article_id}/react',
+            data= {'reaction': reaction}, 
+            current_user=self.get_user()
+        )
+        return self.api_client.make_request(react_to_article_dto)
     
 
     def report_article(self, article_id, reason):
-        return self.api_client.make_request('POST', f'user/articles/{article_id}/report',
-                                {'reason': reason}, current_user=self.get_user())
+        report_article_dto = NewsApiDto(
+            method='POST',
+            endpoint=f'user/articles/{article_id}/report',
+            data={'reason': reason},
+            current_user=self.get_user()
+        )
+        return self.api_client.make_request(report_article_dto)
+    
+    
+    def get_article_details(self, article_id):
+        get_article_details_dto = NewsApiDto(
+            method='GET',
+            endpoint='user/article',
+            params={'article_id': article_id},
+            current_user=self.get_user()
+        )
+        return self.api_client.make_request(get_article_details_dto)
+

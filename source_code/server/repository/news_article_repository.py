@@ -72,11 +72,11 @@ class NewsArticleRepository(INewsArticleRepository):
 
     
     def update_article_view_count(self, article_id):
-
         query = update_article_view_query
         params = (article_id,)
         cursor_params = CursorDto(query=query, params= params, fetch_one=True)
         db.execute_query(cursor_params)
+
 
     def get_articles(self, category_id=None, search_query=None) -> List[NewsArticle]:
         sql = get_all_articles_query
@@ -103,8 +103,7 @@ class NewsArticleRepository(INewsArticleRepository):
         cursor_params = CursorDto(query=query, params=tuple(params), fetch_all=True)
         all_article_rows = db.execute_query(cursor_params)
         return [self._map_row_to_article(article_row) for article_row in all_article_rows] if all_article_rows else []
-    
-    
+
 
     def search_by_keyword(self, keyword: str) -> List[NewsArticle]:
         like = f"%{keyword}%"

@@ -1,7 +1,7 @@
 import requests
 import getpass
 from news_api import NewsAPIClient
-
+from dto.news_api_dto import NewsApiDto
 
 class Authentication:
     def __init__(self):
@@ -12,11 +12,19 @@ class Authentication:
         print("\n--- Login ---")
         email = Authentication.__get_valid_email()
         password = getpass.getpass("Enter your password: ")
-
-        response = api_client.make_request('POST', 'auth/login', {'email': email, 'password': password})
+        response = Authentication.use_login_api(email, password, api_client)
 
         return Authentication.get_user_from_response(response)
     
+    @staticmethod
+    def use_login_api(email, password, api_client: NewsAPIClient):
+        login_dto = NewsApiDto(
+            method='POST',
+            endpoint='auth/login',
+            data={'email': email, 'password': password}
+        )
+        return api_client.make_request(login_dto)
+        
     
     @staticmethod
     def logout(set_current_user_callback):
@@ -32,11 +40,17 @@ class Authentication:
         email = Authentication.__get_valid_email()
         password = Authentication.__get_valid_password()
 
-        response = api_client.make_request('POST', 'auth/register', {
+        signup_dto = NewsApiDto(
+            method='POST',
+            endpoint='auth/register',
+            data={
             'username': username,
             'email': email,
             'password': password
-        })
+        }
+        )
+        
+        response = api_client.make_request(signup_dto )
 
         Authentication.__check_response(response)
 
