@@ -1,17 +1,21 @@
 from datetime import datetime
 from admin_client.base_Action import BaseAdminAction
+from services.external_servers_service import ExternalServersService
+
 
 class ViewServersAction(BaseAdminAction):
     
     def execute(self):
         print("\nList of external servers:")
-        response = self.__safe_execute(self.api_client.make_request, 'GET',
-                        'admin/external_servers', current_user=self.get_current_user())
-        
+        response = self.__get_server_details_service()
         self.__is_valid_response(response)
 
-    
-    
+
+    def __get_server_details_service(self):
+        external_server_service = ExternalServersService(self.api_client, self.get_current_user)
+        return self.__safe_execute(external_server_service.get_server_details)
+
+
     def __safe_execute(self, func, *args, **kwargs):
         try:
             return func(*args, **kwargs)

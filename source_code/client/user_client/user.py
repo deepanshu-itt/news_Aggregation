@@ -1,6 +1,6 @@
 from user_client.user_menu import UserMenu
-from user_client.article_service import ArticleService
-from user_client.notification_service import NotificationService
+from services.article_service import ArticleService
+from services.notification_service import NotificationService
 from auth import Authentication
 
 class UserService:

@@ -2,7 +2,7 @@ from datetime import date
 from utils import (print_menu, get_date, display_articles, 
                    get_valid_article_id,display_article_information)
 from news_api import NewsAPIClient
-from user_client.article_service import ArticleService
+from services.article_service import ArticleService
 from dto.news_api_dto import NewsApiDto
 
 class HeadlinesMenu:

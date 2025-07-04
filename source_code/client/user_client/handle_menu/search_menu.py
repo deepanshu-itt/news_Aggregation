@@ -1,7 +1,6 @@
 from utils import display_articles, get_date
-from user_client.handle_menu.headlines_menu import HeadlinesMenu
 from news_api import NewsAPIClient
-from user_client.article_service import ArticleService
+from services.article_service import ArticleService
 from dto.news_api_dto import NewsApiDto
 
 

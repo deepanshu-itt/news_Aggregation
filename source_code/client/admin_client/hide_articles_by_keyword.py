@@ -1,15 +1,21 @@
 from admin_client.base_Action import BaseAdminAction
+from services.article_service import ArticleService
+
 
 class HideArticlesByKeywordsAction(BaseAdminAction):
     def execute(self):
         print("\nHide Articles By Keywords")
         keyword = input("Enter the Keyword: ")
-        response = self.__safe_execute(self.api_client.make_request, 'POST', 
-                        'admin/hide_article/keywords', {'keyword': keyword}, 
-                        current_user=self.get_current_user())
+        response = self.__hide_articles_by_keyword(keyword)
 
         self.__is_valid_response(response)
 
+    
+    def __hide_articles_by_keyword(self, keyword):
+        article_service = ArticleService(self.api_client, self.get_current_user)
+        return self.__safe_execute(article_service.hide_articles_by_keyword, keyword)
+        
+        
     
     def __safe_execute(self, func, *args, **kwargs):
         try:

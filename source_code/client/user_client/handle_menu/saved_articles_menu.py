@@ -1,8 +1,7 @@
 from utils import print_menu, display_articles, get_valid_article_id
-from user_client.article_service import ArticleService
+from services.article_service import ArticleService
 from utils import display_article_information
 from news_api import NewsAPIClient
-from dto.news_api_dto import NewsApiDto
 
 
 class SavedArticlesMenu:
@@ -47,7 +46,7 @@ class SavedArticlesMenu:
         if not article_id:
             return
 
-        response = self.safe_execute(self.article_service, article_id)
+        response = self.safe_execute(self.article_service.get_article_details, article_id)
         if response:
             self.safe_execute(self.__handle_article_details_response, response)
 

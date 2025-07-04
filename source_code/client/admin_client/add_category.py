@@ -1,14 +1,21 @@
 from admin_client.base_Action import BaseAdminAction
+from services.category_service import CategoryService
+
+
 
 class AddCategoryAction(BaseAdminAction):
     def execute(self):
         print("\nAdd new News Category")
         category_name = input("Enter the Category Name: ")
-        response = self.__safe_execute(self.api_client.make_request, 'POST', 
-                        'admin/categories', {'name': category_name}, current_user=self.get_current_user())
+        response = self.__create_category_service(category_name)
         self.__is_valid_response(response)
 
     
+    def __create_category_service(self, category_name):
+        category_service = CategoryService(self.api_client, self.get_current_user)
+        return self.__safe_execute(category_service.create_category, category_name)
+
+
     def __safe_execute(self, func, *args, **kwargs):
         try:
             return func(*args, **kwargs)

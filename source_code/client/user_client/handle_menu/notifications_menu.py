@@ -1,6 +1,6 @@
 from utils import print_menu
 from news_api import NewsAPIClient
-from user_client.notification_service import NotificationService
+from services.notification_service import NotificationService
 from dto.news_api_dto import NewsApiDto
 
 

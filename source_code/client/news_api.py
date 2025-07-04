@@ -1,8 +1,13 @@
 import requests
 from dto.news_api_dto import NewsApiDto
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 
 class NewsAPIClient:
-    def __init__(self, base_url="http://localhost:5000/api"):
+    def __init__(self, base_url= os.getenv("BASE_URL")):
         self.base_url = base_url
 
 

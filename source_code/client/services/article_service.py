@@ -63,3 +63,12 @@ class ArticleService:
         )
         return self.api_client.make_request(get_article_details_dto)
 
+    
+    def hide_articles_by_keyword(self, keyword):
+        get_article_details_dto = NewsApiDto(
+            method='POST',
+            endpoint='admin/hide_article/keywords',
+            data = {'keyword': keyword},
+            current_user=self.get_user()
+        )
+        return self.api_client.make_request(get_article_details_dto)

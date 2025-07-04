@@ -1,6 +1,6 @@
 from news_api import NewsAPIClient
 from auth import Authentication
-from admin_client.admin import AdminMenu
+from admin_client.admin_menu import AdminMenu
 from user_client.user import UserService
 
 news_api_client = NewsAPIClient()

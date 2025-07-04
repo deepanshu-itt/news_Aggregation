@@ -1,4 +1,6 @@
 from admin_client.base_Action import BaseAdminAction
+from services.external_servers_service import ExternalServersService
+
 
 class UpdateServerAction(BaseAdminAction):
     def execute(self):
@@ -14,16 +16,20 @@ class UpdateServerAction(BaseAdminAction):
             print("No changes specified.")
             return
 
-        response = self.__safe_execute(self.api_client.make_request, 'PUT', 
-                    f'admin/external_servers/{server_id}/status', payload, 
-                    current_user=self.get_current_user())
+        response = self.__update_server_service(server_id, payload)
     
         self.__is_valid_response(response)
     
     
+    def __update_server_service(self, server_id, payload):
+        external_server_service = ExternalServersService(self.api_client, self.get_current_user)
+        return self.__safe_execute(external_server_service.update_server, server_id, payload)
+
+
     def __get_server_id_from_user(self):
         try:
             server_id = int(input("Enter the external server ID: "))
+            return server_id
         except ValueError:
             print("Invalid server ID. Please enter a number.")
             return

@@ -1,5 +1,5 @@
 from datetime import datetime
-
+import os
 
 def check_articles(articles):
     response = True
@@ -115,3 +115,7 @@ def get_valid_article_id():
     else:
         print("Invalid Article ID.")
     return result
+
+
+def clear_console():
+    os.system('cls' if os.name == 'nt' else 'clear')
