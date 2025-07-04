@@ -76,7 +76,7 @@ class UserRepository(IUser):
         return {"success": True, "message": f"Category '{category_name}' removed"}, 200
 
 
-    def __handle_keyword_removal(self, userid: int, category_name: str, keyword):
+    def __handle_keyword_removal(self, userid: int, category_name: str, user_input_keywords):
         preferences_list = self.__fetch_user_preferences(userid)
         updated_preferences = []
         keyword_removed = False
@@ -86,19 +86,19 @@ class UserRepository(IUser):
                 original_keywords_list = category.get('keywords', [])
                 updated_keywords = [
                     keyword for keyword in original_keywords_list 
-                    if keyword.lower() != keyword.lower()
+                    if keyword.lower() not in  user_input_keywords
                 ]
                 if len(updated_keywords) != len(original_keywords_list):
                     keyword_removed = True
                 category['keywords'] = updated_keywords
             updated_preferences.append(category)
 
-        response = self.__handle_keyword_not_removed( keyword, category_name, keyword_removed)
+        response = self.__handle_keyword_not_removed(user_input_keywords, category_name, keyword_removed)
         if not response:
             self.__update_user_preferences(userid, updated_preferences)
             response = {
                 "success": True,
-                "message": f"Keyword '{keyword}' removed from category '{category_name}'"
+                "message": f"Keyword '{user_input_keywords}' removed from category '{category_name}'"
             }, 200
         
         return response 

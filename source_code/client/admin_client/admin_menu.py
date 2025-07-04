@@ -32,7 +32,6 @@ class AdminMenu:
 
     def run_menu(self):
         while True:
-            clear_console()
             self._print_menu()
             choice = input("Enter your option: ")
 

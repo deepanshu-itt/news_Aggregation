@@ -23,3 +23,13 @@ class ExternalServersService:
             current_user=self.get_user()
         )
         return self.api_client.make_request(get_saved_articles_dto)
+    
+    
+    def get_servers(self):
+        get_saved_articles_dto = NewsApiDto(
+            method='GET',
+            endpoint='admin/external_servers',
+            current_user=self.get_user()
+        )
+        return self.api_client.make_request(get_saved_articles_dto)
+    
