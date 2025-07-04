@@ -43,7 +43,7 @@ class NotificationService:
 
         self.email_sender = EmailSender(app_config=app_config)
         articles_for_user = self.article_filter.filter_articles(user_prefs, recent_articles)
-        subject, body = EmailContentFormatter.build_email_content_from_articles(articles_for_user, body_lines)
+        body = EmailContentFormatter.build_email_content_from_articles(articles_for_user, body_lines)
 
         if self.email_sender.send_email(user_prefs.email, subject, body):
             article_ids = [article.id for article in articles_for_user]

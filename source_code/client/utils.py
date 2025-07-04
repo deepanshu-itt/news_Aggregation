@@ -2,11 +2,13 @@ from datetime import datetime
 
 
 def check_articles(articles):
+    response = True
     if not articles:
         print("No articles found.")
-        return True
     else:
-        return False
+        response = False
+    
+    return response
 
 
 def display_articles(articles, page_size=10):
@@ -27,14 +29,19 @@ def display_articles(articles, page_size=10):
 
 def show_article_batch(batch, start_index=1):
 
-    for i, article in enumerate(batch, start=start_index):
-        display_single_article(article, index=i)
+    for index, article in enumerate(batch, start=start_index):
+        display_single_article(article, index=index)
 
 
-def display_single_article(article, index):
-
+def display_single_article(article: dict, index: int):
     print(f"\n--- Article {index} ---")
     print(f"Article Id: {article.get('id')}")
+    print(f"Title: {article.get('title', 'N/A')}")
+    
+
+
+def display_article_information(article: dict):
+    print(f"\n\nArticle Id: {article.get('id')}")
     print(f"Title: {article.get('title', 'N/A')}")
     print(f"Source: {article.get('source', 'N/A')}")
     print(f"Published: {format_published_date(article.get('published_at'))}")
@@ -43,7 +50,7 @@ def display_single_article(article, index):
     print(f"URL: {article.get('url', 'N/A')}")
     print(f"Likes: {article.get('like_count')}")
     print(f"Dislikes: {article.get('dislike_count')}")
-
+    
 
 def format_published_date(published_at):
     response = None
@@ -59,45 +66,52 @@ def format_published_date(published_at):
 
 
 
-def get_article_published_date(published_at_str):
+def get_article_published_date(article_published_at):
     
-    if '.' in published_at_str and 'Z' in published_at_str:
-        pub_dt = datetime.strptime(published_at_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+    if '.' in article_published_at and 'Z' in article_published_at:
+        article_published_at = datetime.strptime(article_published_at, '%Y-%m-%dT%H:%M:%S.%fZ')
     
-    elif ',' in published_at_str and 'GMT' in published_at_str:
-            pub_dt = datetime.strptime(published_at_str, '%a, %d %b %Y %H:%M:%S GMT')
+    elif ',' in article_published_at and 'GMT' in article_published_at:
+        article_published_at = datetime.strptime(article_published_at, '%a, %d %b %Y %H:%M:%S GMT')
         
-    elif 'T' in published_at_str: 
-        pub_dt = datetime.fromisoformat(published_at_str.replace('Z', '+00:00'))
+    elif 'T' in article_published_at: 
+        article_published_at = datetime.fromisoformat(article_published_at.replace('Z', '+00:00'))
         
     else: 
-        pub_dt = datetime.strptime(published_at_str, '%Y-%m-%d %H:%M:%S')
+        article_published_at = datetime.strptime(article_published_at, '%Y-%m-%d %H:%M:%S')
 
     
-    return pub_dt
+    return article_published_at
 
 
 def get_date():
     while True:
         try:
-            start_date_str = input("Enter start date (YYYY-MM-DD): ")
-            end_date_str = input("Enter end date (YYYY-MM-DD): ")
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-            return start_date, end_date
+            return user_input_date()
         except ValueError:
             print("Invalid date format. Please use YYYY-MM-DD.")
 
 
+def user_input_date():
+    start_date_str = input("Enter start date (YYYY-MM-DD): ")
+    end_date_str = input("Enter end date (YYYY-MM-DD): ")
+    start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+    end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+    return start_date, end_date
+
+
 def print_menu(title, options):
     print(f"\n--- {title} ---")
-    for i, opt in enumerate(options, start=1):
-        print(f"{i}. {opt}")
+    for index, option in enumerate(options, start=1):
+        print(f"{index}. {option}")
     return input("Enter your option: ").strip()
 
+
 def get_valid_article_id():
+    result = None
     article_id_str = input("Enter the Article ID: ").strip()
     if article_id_str.isdigit():
-        return int(article_id_str)
-    print("Invalid Article ID.")
-    return None
+        result = int(article_id_str)
+    else:
+        print("Invalid Article ID.")
+    return result

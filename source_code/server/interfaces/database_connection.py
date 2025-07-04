@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from dto.cursor_dto import CursorDto
+
+
 class IDatabaseConnection(ABC):
     @abstractmethod
     def get_connection(self):

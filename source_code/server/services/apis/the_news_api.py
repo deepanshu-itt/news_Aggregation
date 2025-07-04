@@ -24,8 +24,7 @@ class TheNewsAPICom(INewsAPI):
     def __prepare_params(self,request_data: APIRequest):
         params = {
             "api_token": self.api_key,
-            "language": "en",
-            "limit": 5
+            "language": "en"
         }
         if request_data.query:
             params["search"] = request_data.query

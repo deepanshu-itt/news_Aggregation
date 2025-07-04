@@ -2,6 +2,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from services.news_service import NewsService 
 
+
 def start_scheduler(app_config):
 
     scheduler = BackgroundScheduler()

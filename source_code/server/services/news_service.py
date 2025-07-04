@@ -137,6 +137,12 @@ class NewsService:
         news_Article_manager = NewsArticleRepository()
         return news_Article_manager.search_by_keyword(query)
 
+    
+    @staticmethod
+    def search_articles_by_range(query, start, end):
+        news_Article_manager = NewsArticleRepository()
+        return news_Article_manager.search_by_keyword_and_range(query, start, end)
+
 
     @staticmethod
     def save_article_for_user(user_id, article_id):

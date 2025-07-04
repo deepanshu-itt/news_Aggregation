@@ -29,10 +29,9 @@ class NewsAPIClient:
     
         except requests.exceptions.ConnectionError:
             print("Connection Error: Could not connect to the server. Is the server running?")
-            response =  None
-        except requests.exceptions.RequestException as e:
-            print(f"API request failed: {e}")
-            response =  None
+        except requests.exceptions.RequestException as error:
+            print(f"API request failed: {error}")
+    
         
         return response
     

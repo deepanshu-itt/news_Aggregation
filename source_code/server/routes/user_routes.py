@@ -1,11 +1,11 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
 from services.user_service import UserService
 from services.news_service import NewsService
 from services.report_service import ArticleReportService
 from repository.category_repository import CategoryRepository
 from database.database import db
 from routes.auth_routes import login_required
-import arrow
+
 
 user_bp = Blueprint('user_bp', __name__)
 user_service = UserService()
@@ -40,11 +40,10 @@ def configure_user_preferences():
 def update_user_preferences():
     user_id = request.headers.get('X-User-Id')
     data = request.get_json()
-    email_enabled = data.get('email_enabled', True)
-    daily_digest_enabled = data.get('daily_digest_enabled', True) 
-    category_preferences = data.get('keywords') 
+    category_preferences = data.get('keywords') or []
+    category_name = data.get('category_name') 
     result, status_code = user_service.update_user_preferences(
-        user_id, email_enabled, daily_digest_enabled, category_preferences
+        user_id, category_name, category_preferences
     )
     return jsonify(result), status_code
 
@@ -81,9 +80,11 @@ def unsave_article_route():
 @user_bp.route('/articles/saved', methods=['GET'])
 @login_required
 def get_user_saved_articles_route():
+
     user_id = request.headers.get('X-User-Id')
     result = user_service.get_user_saved_articles(user_id)
     return jsonify(result), 200
+
 
 
 @user_bp.route('/news', methods=['GET'])
@@ -95,20 +96,20 @@ def get_news():
     end =  request.args.get('end_date')
     user_id = request.headers.get('X-User-Id')
     article_filters = NewsService.create_article_filter(start, end, user_id)
-    if search_query:
-        articles = NewsService.search_articles(search_query)
     
+    if search_query and start and end:
+        articles = NewsService.search_articles_by_range(search_query, start, end)
+    elif search_query:
+        articles = NewsService.search_articles(search_query)
     elif start != None  and end != None and category_name != None :
         articles = NewsService.get_headlines_by_date_and_Category(article_filters, category_name = category_name)
-    
     elif start != None  and end != None :
-        # start = arrow.get(start).datetime
-        # end = arrow.get(end).datetime
         articles = NewsService.get_headlines_by_date_and_Category(article_filters)
-    
     else:
         print("Invalid data for searching Articles")
         jsonify({"success": False, "message": "Missing searching data."}), 403
+    
+    
     return jsonify({"success": True, "articles": [article.__dict__ for article in articles]}), 200
 
 
@@ -125,12 +126,10 @@ def get_categories():
 def delete_user_keyword():
     user_id = request.headers.get('X-User-Id')
     data = request.get_json()
+    category_name = data.get('category_name') 
     keyword = data.get('keywords') if data else None
 
-    if not keyword:
-        return jsonify({"success": False, "message": "No keyword provided"}), 400
-
-    result, status_code = user_service.remove_notification_keyword(user_id, keyword)
+    result, status_code = user_service.remove_notification_keyword(user_id, category_name, keyword)
 
     return jsonify(result), status_code
 
@@ -138,11 +137,25 @@ def delete_user_keyword():
 @user_bp.route('/articles/<int:article_id>/report', methods=['POST'])
 @login_required
 def report_article(article_id):
-    print("entered")
     user_id = request.headers.get('X-User-Id')
     data = request.get_json()
     report_reason = data.get('reason') if data else "Not Specified"
     service = ArticleReportService()
     result, status_code = service.report_article(user_id, article_id, report_reason)
     return jsonify(result), status_code
-    
+
+
+@user_bp.route('/articles/<int:article_id>/unreport', methods=['POST'])
+@login_required
+def unreport_article(article_id):
+    user_id = request.headers.get('X-User-Id')
+    service = ArticleReportService()
+    result, status_code = service.unreport_article(user_id, article_id)
+    return jsonify(result), status_code
+
+
+@user_bp.route('/article', methods=['GET'])
+def get_article_details_route():
+    article_id = request.args.get('article_id')
+    result, status_code = user_service.get_article_details(article_id)
+    return jsonify(result), status_code

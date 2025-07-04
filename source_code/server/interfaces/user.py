@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 from models.user import User
+from dto.user_dto import UserDto
+
 
 class IUser(ABC):
     @abstractmethod
-    def create(self, username: str, email: str, password: str, role: str = 'user') -> Optional[User]:
+    def create(self, user_data: UserDto) -> Optional[User]:
         pass
 
     @abstractmethod

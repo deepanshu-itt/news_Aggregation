@@ -1,5 +1,6 @@
 from services.category_service import CategoryService
 from repository.category_repository import CategoryRepository
+
 class CategoryIdentifier:
     
     @staticmethod
@@ -13,6 +14,7 @@ class CategoryIdentifier:
         )
 
         return category_id
+
 
     @staticmethod
     def _get_existing_or_new_category(article:dict, existing_categories, category_repository: CategoryRepository):

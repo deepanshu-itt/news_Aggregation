@@ -1,15 +1,17 @@
 from repository.user_repository import UserRepository
 from werkzeug.security import check_password_hash
+from dto.user_dto import UserDto
+
 
 class AuthService:
     
     @staticmethod
     def register_user(username, email, password):
         result = AuthService.check_details_validity(username, email, password)
-        
+        user_data = UserDto(username, email, password)
         if result is None:
             user_manager = UserRepository()
-            user = user_manager.create(username, email, password)
+            user = user_manager.create(user_data)
             result = AuthService.check_user_exists(user)
             
         return result

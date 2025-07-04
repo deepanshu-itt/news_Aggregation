@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS news_articles (
     category_id INT,
     raw_data JSON, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    views INT NOT NULL DEFAULT 0,
     is_hidden BOOLEAN NOT NULL DEFAULT FALSE,
     report_count INT NOT NULL DEFAULT 0,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
@@ -62,8 +63,6 @@ CREATE TABLE IF NOT EXISTS saved_articles (
 CREATE TABLE IF NOT EXISTS user_notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL UNIQUE, 
-    email_enabled BOOLEAN DEFAULT TRUE,
-    daily_digest_enabled BOOLEAN DEFAULT FALSE,
     category_preferences JSON,
     email VARCHAR(255),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
