@@ -1,8 +1,8 @@
-from admin_client.base_Action import BaseAdminAction
+from admin_client.base_admin_action import IAdminAction
 from services.article_service import ArticleService
 
 
-class HideArticlesByKeywordsAction(BaseAdminAction):
+class HideArticlesByKeywordsAction(IAdminAction):
     def execute(self):
         print("\nHide Articles By Keywords")
         keyword = input("Enter the Keyword: ")

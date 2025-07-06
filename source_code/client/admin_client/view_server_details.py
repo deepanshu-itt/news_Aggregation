@@ -1,8 +1,8 @@
-from admin_client.base_Action import BaseAdminAction
+from admin_client.base_admin_action import IAdminAction
 from services.external_servers_service import ExternalServersService
 
 
-class ViewServerDetailsAction(BaseAdminAction):
+class ViewServerDetailsAction(IAdminAction):
 
     def execute(self):
         print("\nList of external server details (API keys included):")

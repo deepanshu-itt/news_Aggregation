@@ -14,10 +14,10 @@ if not db_instance:
 
 
 if __name__ == '__main__':
-    # tests_passed = unittest.TextTestRunner().run(
-    #     unittest.defaultTestLoader.discover("tests")
-    # ).wasSuccessful()
+    tests_passed = unittest.TextTestRunner().run(
+        unittest.defaultTestLoader.discover("tests")
+    ).wasSuccessful()
 
-    # if tests_passed:
-        # start_scheduler(app.config)
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    if tests_passed:
+        start_scheduler(app.config)
+        app.run(debug=True, host='0.0.0.0', port=5000)

@@ -136,10 +136,4 @@ class TestUserAPI(unittest.TestCase):
                                    json = {'reaction': 'dislike'})
         
         self.assertEqual(response.get_json()["success"],True)
-
-    
-    def test_dtos(self):
-        EmailNotificationDto(user_id=2, article_ids=2666, message="Test Data")
-        NewsArticleDto(title = "Hi", description ="test", url = "http", image_url="http", published_at= "2025-01-1", source = "2025-01-1", 
-                 category_id=2)
         

@@ -1,6 +1,5 @@
 from auth import Authentication
 from news_api import NewsAPIClient
-
 from admin_client.view_servers import ViewServersAction
 from admin_client.view_server_details import ViewServerDetailsAction
 from admin_client.update_server import UpdateServerAction
@@ -8,7 +7,7 @@ from admin_client.add_category import AddCategoryAction
 from admin_client.hide_article_by_category import HideArticlesByCategoryAction
 from admin_client.unhide_articles_by_category import UnhideArticlesByCategoryAction
 from admin_client.hide_articles_by_keyword import HideArticlesByKeywordsAction
-from utils import clear_console
+
 
 
 class AdminMenu:
@@ -32,6 +31,7 @@ class AdminMenu:
 
     def run_menu(self):
         while True:
+
             self._print_menu()
             choice = input("Enter your option: ")
 

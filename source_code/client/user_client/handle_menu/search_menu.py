@@ -2,9 +2,10 @@ from utils import display_articles, get_date
 from news_api import NewsAPIClient
 from services.article_service import ArticleService
 from dto.news_api_dto import NewsApiDto
+from user_client.base_user_action import IUserAction
 
 
-class SearchMenu:
+class SearchMenu(IUserAction):
     def __init__(self, user_menu):
         self.api_client: NewsAPIClient  = user_menu.api_client
         self.get_user = user_menu.get_user
@@ -70,4 +71,3 @@ class SearchMenu:
             is_article_exist = False
         
         return is_article_exist
-        

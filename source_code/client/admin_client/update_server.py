@@ -1,8 +1,8 @@
-from admin_client.base_Action import BaseAdminAction
+from admin_client.base_admin_action import IAdminAction
 from services.external_servers_service import ExternalServersService
 
 
-class UpdateServerAction(BaseAdminAction):
+class UpdateServerAction(IAdminAction):
     def execute(self):
         print("\nUpdate/Edit the external server’s details")
      

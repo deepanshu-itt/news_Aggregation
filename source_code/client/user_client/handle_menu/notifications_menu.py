@@ -2,9 +2,10 @@ from utils import print_menu
 from news_api import NewsAPIClient
 from services.notification_service import NotificationService
 from dto.news_api_dto import NewsApiDto
+from user_client.base_user_action import IUserAction
 
 
-class NotificationsMenu:
+class NotificationsMenu(IUserAction):
     def __init__(self, user_menu):
         self.notification_service: NotificationService = user_menu.notification_service
         self.api_client: NewsAPIClient = user_menu.api_client

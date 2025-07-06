@@ -1,9 +1,9 @@
-from admin_client.base_Action import BaseAdminAction
+from admin_client.base_admin_action import IAdminAction
 from services.category_service import CategoryService
 
 
 
-class AddCategoryAction(BaseAdminAction):
+class AddCategoryAction(IAdminAction):
     def execute(self):
         print("\nAdd new News Category")
         category_name = input("Enter the Category Name: ")

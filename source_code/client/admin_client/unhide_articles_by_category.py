@@ -1,13 +1,12 @@
-from admin_client.base_Action import BaseAdminAction
+from admin_client.base_admin_action import IAdminAction
 from services.category_service import CategoryService
 
 
-class UnhideArticlesByCategoryAction(BaseAdminAction):
+class UnhideArticlesByCategoryAction(IAdminAction):
     def execute(self):
         print("\nUnhide Articles By Category")
         category_name = self.__get_already_block_categories()
         unhide_article_api_response = self.__unhide_category_articles_service(category_name)
-
         self.__is_valid_response(unhide_article_api_response)
     
     
@@ -24,7 +23,6 @@ class UnhideArticlesByCategoryAction(BaseAdminAction):
         category_map = {}
         self.__print_categories(categories, category_map)
         selected_category =  self.__get_user_input_category(category_map)
-        print(selected_category)
         return selected_category
 
 

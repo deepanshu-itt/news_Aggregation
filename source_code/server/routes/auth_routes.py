@@ -17,22 +17,22 @@ def register():
     result, status_code = auth_service.register_user(username, email, password)
     return jsonify(result), status_code
 
-# @auth_bp.route('/login', methods=['POST'])(login_controller.login)
-auth_bp.add_url_rule('/login', methods=['POST'], view_func=login_controller.login)
-# def login():
-#     data = request.get_json()
-#     email = data.get('email')
-#     password = data.get('password')
-    
-#     result, status_code = auth_service.login_user(email, password)
-#     if result.get('success'):
-#         session['user_id'] = result['user']['id']
-#         session['username'] = result['user']['username']
-#         session['role'] = result['user']['role']
-#     else:
-#         print("no session\n")
 
-#     return jsonify(result), status_code
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    
+    result, status_code = auth_service.login_user(email, password)
+    if result.get('success'):
+        session['user_id'] = result['user']['id']
+        session['username'] = result['user']['username']
+        session['role'] = result['user']['role']
+    else:
+        print("no session\n")
+
+    return jsonify(result), status_code
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():

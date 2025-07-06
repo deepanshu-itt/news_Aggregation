@@ -1,10 +1,11 @@
 from datetime import datetime
-from admin_client.base_Action import BaseAdminAction
+from admin_client.base_admin_action import IAdminAction
 from services.external_servers_service import ExternalServersService
 
 
-class ViewServersAction(BaseAdminAction):
-    
+class ViewServersAction(IAdminAction):
+
+
     def execute(self):
         print("\nList of external servers:")
         response = self.__get_server_details_service()
@@ -29,17 +30,15 @@ class ViewServersAction(BaseAdminAction):
             self.__safe_execute(self.__print_server_details, response)
         else:
             print("Failed to retrieve server status.")
-            
-    
-    
+
+
     def __print_server_details(self, response):
-        print(response['servers'])
         for index, server in enumerate(response['servers']):
             status_text = self.__get_server_status(server['status'])
             formatted_date = self.__get_formatted_date(server['last_accessed'])
             print(f"{index+1}. {server['name']} - {status_text} - last accessed: {formatted_date}")
-    
-    
+
+
     def __get_server_status(self, server_status):
         return "Active" if server_status == 'active' else "Not Active"
 

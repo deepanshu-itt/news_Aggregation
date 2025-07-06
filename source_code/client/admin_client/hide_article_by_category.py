@@ -1,8 +1,8 @@
-from admin_client.base_Action import BaseAdminAction
+from admin_client.base_admin_action import IAdminAction
 from services.category_service import CategoryService
 
 
-class HideArticlesByCategoryAction(BaseAdminAction):
+class HideArticlesByCategoryAction(IAdminAction):
 
     def execute(self):  
         print("\nHide Articles By Category")

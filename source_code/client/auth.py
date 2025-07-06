@@ -15,7 +15,8 @@ class Authentication:
         response = Authentication.use_login_api(email, password, api_client)
 
         return Authentication.get_user_from_response(response)
-    
+
+
     @staticmethod
     def use_login_api(email, password, api_client: NewsAPIClient):
         login_dto = NewsApiDto(

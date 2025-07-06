@@ -2,9 +2,10 @@ from utils import print_menu, display_articles, get_valid_article_id
 from services.article_service import ArticleService
 from utils import display_article_information
 from news_api import NewsAPIClient
+from user_client.base_user_action import IUserAction
 
 
-class SavedArticlesMenu:
+class SavedArticlesMenu(IUserAction):
     def __init__(self, user_menu):
         self.article_service: ArticleService = user_menu.article_service
         self.user_service = user_menu.user_service
@@ -21,7 +22,7 @@ class SavedArticlesMenu:
         display_articles(response[0].get('articles', []))
         return self.safe_execute(self._handle_saved_articles_menu)
 
-  
+
     def _handle_saved_articles_menu(self):
         while True:
             choice = print_menu("Manage Saved Articles", ["Back", "Logout", "Delete Article", "View Article Details"])
@@ -50,7 +51,7 @@ class SavedArticlesMenu:
         if response:
             self.safe_execute(self.__handle_article_details_response, response)
 
-    
+
     def __handle_article_details_response(self, article_details_response):
         if article_details_response and article_details_response.get("success"):
             self.safe_execute(display_article_information, article_details_response.get("article"))
@@ -58,9 +59,9 @@ class SavedArticlesMenu:
             print("No Article Information Available.")
 
 
-    def safe_execute(self, func, *args, **kwargs):
+    def safe_execute(self, function, *args, **kwargs):
         try:
-            return func(*args, **kwargs)
+            return function(*args, **kwargs)
         except Exception:
             print("An unexpected error occurred.")
             return None
