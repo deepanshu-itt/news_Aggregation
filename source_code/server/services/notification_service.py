@@ -14,6 +14,8 @@ from config import Config
 
 mysql_connection = MySQLDatabaseConnection(Config)
 db = Database(mysql_connection)
+
+
 class NotificationService:
     _instance = None
 
