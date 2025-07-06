@@ -2,7 +2,7 @@ from user_client.handle_menu.headlines_menu import HeadlinesMenu
 from user_client.handle_menu.saved_articles_menu import SavedArticlesMenu
 from user_client.handle_menu.search_menu import SearchMenu
 from user_client.handle_menu.notifications_menu import NotificationsMenu
-from utils import print_menu
+from utils import print_menu, clear_console
 from datetime import datetime
 
 
@@ -20,6 +20,7 @@ class UserMenu:
     def run_menu(self):
         response = True
         while response:
+            clear_console()
             self._welcome_user()
             choice = print_menu("Main Menu", [
                 "Headlines", "Saved Articles", "Search", "Notifications", "Logout"

@@ -1,25 +1,28 @@
-from admin_client.base_Action import BaseAdminAction
+from admin_client.base_admin_action import IAdminAction
+from services.category_service import CategoryService
 
-class UnhideArticlesByCategoryAction(BaseAdminAction):
+
+class UnhideArticlesByCategoryAction(IAdminAction):
     def execute(self):
         print("\nUnhide Articles By Category")
         category_name = self.__get_already_block_categories()
-        unhide_article_api_response = self.__safe_execute(self.api_client.make_request,
-                        'POST', 'admin/unhide_category_article', {'name': category_name}, current_user=self.get_current_user())
-
+        unhide_article_api_response = self.__unhide_category_articles_service(category_name)
         self.__is_valid_response(unhide_article_api_response)
     
     
+    def __unhide_category_articles_service(self, category_name):
+        category_service = CategoryService(self.api_client, self.get_current_user)
+        return self.__safe_execute(category_service.unhide_category_article, category_name)
+    
     def __get_already_block_categories(self):
         print("\nAvailable Categories to Unblock\n")
-        categories_response = self.__safe_execute(self.api_client.make_request,
-                        'GET', 'user/categories', current_user=self.get_current_user())
+        category_service = CategoryService(self.api_client, self.get_current_user)
+        categories_response = self.__safe_execute(category_service.get_categories)
 
         categories = categories_response.get("categories", []) if categories_response else []
         category_map = {}
         self.__print_categories(categories, category_map)
         selected_category =  self.__get_user_input_category(category_map)
-        print(selected_category)
         return selected_category
 
 

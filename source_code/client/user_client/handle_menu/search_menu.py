@@ -1,10 +1,11 @@
 from utils import display_articles, get_date
-from user_client.handle_menu.headlines_menu import HeadlinesMenu
 from news_api import NewsAPIClient
-from user_client.article_service import ArticleService
+from services.article_service import ArticleService
+from dto.news_api_dto import NewsApiDto
+from user_client.base_user_action import IUserAction
 
 
-class SearchMenu:
+class SearchMenu(IUserAction):
     def __init__(self, user_menu):
         self.api_client: NewsAPIClient  = user_menu.api_client
         self.get_user = user_menu.get_user
@@ -23,15 +24,12 @@ class SearchMenu:
             'end_date': end.strftime('%Y-%m-%d')
         }
 
-        response = self.api_client.make_request('GET', 'user/news', params=params, 
-                                            current_user=self.get_user())
+        response = self.__get_search_news_from_api(params)
         
-        articles = self.__handle_response(response)
-        if articles:
-            return HeadlinesMenu(self).run()
-        else:
-            print("No results found.")
-            return True
+        self.__handle_response(response)
+        
+        return True
+        
 
     
     def __get_user_query(self):
@@ -44,11 +42,32 @@ class SearchMenu:
                 return user_query
     
     
+    def __get_search_news_from_api(self, params):
+        get_search_news_dto = NewsApiDto(
+            method='GET',
+            endpoint='user/news',
+            params=params,
+            current_user=self.get_user()
+        )
+        return self.api_client.make_request(get_search_news_dto)
+
+        
     def __handle_response(self, response):
+        result = self.__is_article_exist(response)
+        if result:
+            articles = response.get('articles', [])
+            display_articles(articles)
+            
+        return result
+
+    
+    def __is_article_exist(self, response):
+        is_article_exist = True
         if not response.get('success'):
             print("Search failed.")
-            return True
-
-        articles = response.get('articles', [])
-        display_articles(articles)
-        return articles
+            is_article_exist = False
+        elif not response.get('articles'):
+            print("No Articles Found")
+            is_article_exist = False
+        
+        return is_article_exist

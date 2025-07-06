@@ -7,7 +7,35 @@ create_news_article_query = """
 
 get_article_by_url_query = "SELECT * FROM news_articles WHERE url = %s"
 
-get_article_by_id_query = "SELECT * FROM news_articles WHERE id = %s"
+get_article_by_id_query = """
+SELECT 
+    a.id,
+    a.title,
+    a.description,
+    a.url,
+    a.image_url,
+    a.published_at,
+    a.source,
+    a.category_id,
+    a.raw_data,
+    a.created_at,
+    a.views,
+    a.is_hidden,
+    a.report_count,
+    c.name AS category_name,
+    COALESCE(SUM(CASE WHEN ar.reaction = 'like' THEN 1 ELSE 0 END), 0) AS like_count,
+    COALESCE(SUM(CASE WHEN ar.reaction = 'dislike' THEN 1 ELSE 0 END), 0) AS dislike_count
+FROM 
+    news_articles a
+LEFT JOIN 
+    article_reactions ar ON a.id = ar.article_id
+LEFT JOIN
+    categories c ON a.category_id = c.id
+WHERE 
+    a.id = %s
+GROUP BY 
+    a.id
+"""
 
 update_article_view_query = """ UPDATE news_articles
                     SET views = views + 1

@@ -43,4 +43,5 @@ class NewsArticle:
             "dislike_count": self.dislike_count,
             "is_hidden": self.is_hidden,
             "report_count": self.report_count,
+            "views": self.views
         }

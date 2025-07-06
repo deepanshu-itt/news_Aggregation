@@ -1,21 +1,26 @@
-from admin_client.base_Action import BaseAdminAction
+from admin_client.base_admin_action import IAdminAction
+from services.category_service import CategoryService
 
-class HideArticlesByCategoryAction(BaseAdminAction):
+
+class HideArticlesByCategoryAction(IAdminAction):
 
     def execute(self):  
         print("\nHide Articles By Category")
         category_name = self.__get_unblock_category()
-        hide_article_api_response = self.__safe_execute(self.api_client.make_request,'POST', 
-                        'admin/hide_category_article', {'name': category_name},
-                        current_user=self.get_current_user())
-        
+        hide_article_api_response = self.__hide_category_service(category_name)
         self.__is_valid_response(hide_article_api_response)
+
+
+    
+    def __hide_category_service(self, category_name):
+        category_service = CategoryService(self.api_client, self.get_current_user)
+        return self.__safe_execute(category_service.hide_category_article, category_name)
 
 
     def __get_unblock_category(self):
         print("\nAvailable Categories to Block\n")
-        categories_response = self.__safe_execute(self.api_client.make_request,
-                        'GET', 'user/categories', current_user=self.get_current_user())
+        category_service = CategoryService(self.api_client, self.get_current_user)
+        categories_response = self.__safe_execute(category_service.get_categories)
 
         categories = categories_response.get("categories", []) if categories_response else []
         category_map = {}

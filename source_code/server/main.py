@@ -1,11 +1,13 @@
+from routes.admin.admin_routes import admin_bp
+from routes.user.user_routes import user_bp
+from routes.user.user_like_routes import article_reaction_bp
+from routes.user.report_article_routes import report_article_bp
+from routes.user.save_articles_routes import save_article_bp
+from routes.user.user_preferences_routes import user_preferences_bp
 from routes.auth_routes import auth_bp
-from routes.admin_routes import admin_bp
-from routes.user_routes import user_bp
-from routes.user_like_routes import article_reaction_bp
 from config import Config
 import sys
 from flask import Flask, jsonify, session
-from app_utils import load_external_server_keys_into_app_config
 
 
 def create_app():
@@ -23,6 +25,9 @@ def create_app():
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
     app.register_blueprint(user_bp, url_prefix='/api/user')
     app.register_blueprint(article_reaction_bp, url_prefix='/api/user')
+    app.register_blueprint(report_article_bp, url_prefix='/api/user')
+    app.register_blueprint(save_article_bp, url_prefix='/api/user')
+    app.register_blueprint(user_preferences_bp, url_prefix='/api/user')
 
 
     @app.route('/')

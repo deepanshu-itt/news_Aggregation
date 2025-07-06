@@ -2,10 +2,12 @@ from datetime import date
 from utils import (print_menu, get_date, display_articles, 
                    get_valid_article_id,display_article_information)
 from news_api import NewsAPIClient
-from user_client.article_service import ArticleService
+from services.article_service import ArticleService
+from dto.news_api_dto import NewsApiDto
+from user_client.base_user_action import IUserAction
 
 
-class HeadlinesMenu:
+class HeadlinesMenu(IUserAction):
     def __init__(self, user_menu):
         self.api_client: NewsAPIClient = user_menu.api_client
         self.get_user = user_menu.get_user
@@ -17,8 +19,9 @@ class HeadlinesMenu:
     def safe_execute(self, func, *args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except Exception:
+        except Exception as error:
             print("An error occurred while executing the operation.")
+            print(error )
             return None
 
 
@@ -37,7 +40,7 @@ class HeadlinesMenu:
 
 
     def _show_headlines(self, start_date, end_date):
-        categories_response = self.safe_execute(self.api_client.make_request, 'GET', 'user/categories', current_user=self.get_user())
+        categories_response = self.__get_categories_response()
         categories = categories_response.get("categories", []) if categories_response else []
         category_map = {'1': None}
 
@@ -51,13 +54,32 @@ class HeadlinesMenu:
         if selected:
             params['category'] = selected
 
-        response = self.safe_execute(self.api_client.make_request, 'GET', 'user/news', params=params, current_user=self.get_user())
+        response = self.__get_news_from_api(params)
         articles = response.get('articles', []) if response and response.get('success') else []
         self.safe_execute(display_articles, articles)
 
         if articles:
             return self.safe_execute(self._article_interaction_loop)
         return True
+
+
+    def __get_news_from_api(self, params):
+        get_headlines_dto = NewsApiDto(
+            method='GET',
+            endpoint='user/news',
+            params=params,
+            current_user=self.get_user()
+        )
+        return self.safe_execute(self.api_client.make_request, get_headlines_dto)
+
+
+    def __get_categories_response(self,):
+        get_categories_dto = NewsApiDto(
+            method='GET',
+            endpoint='user/categories',
+            current_user=self.get_user()
+        )
+        return self.safe_execute(self.api_client.make_request, get_categories_dto)
 
 
     def _print_categories_manage_menu(self, categories, category_map):
@@ -68,7 +90,7 @@ class HeadlinesMenu:
             category_map[str(index)] = category['name']
         print(f"{len(categories) + 2}. Back")
 
-    
+
     def _article_interaction_loop(self):
         while True:
             choice = self.safe_execute(print_menu, "Article Options", [
@@ -96,7 +118,8 @@ class HeadlinesMenu:
         if not article_id:
             return
        
-        response = self.safe_execute(self.api_client.make_request, 'GET', 'user/article', params={'article_id': article_id}, current_user=self.get_user())
+        # response = self.safe_execute(self.api_client.make_request, 'GET', 'user/article', params={'article_id': article_id}, current_user=self.get_user())
+        response = self.safe_execute(self.article_service.get_article_details, article_id)
         if response:
             self.safe_execute(self.__handle_article_details_response, response)
 
@@ -108,18 +131,14 @@ class HeadlinesMenu:
             print("No Article Information Available.")
 
 
-    def _handle_save_article(self, choice):
+    def _handle_save_article(self):
         article_id = self.safe_execute(get_valid_article_id)
-        if not article_id:
-            return
-        if choice == '3':
-            response = self.safe_execute(self.article_service.save_article, article_id)
-            print(response.get('message', "Failed to save article.") if response else "Failed to save article.")
-        else:
-            self.safe_execute(self._react_to_article, article_id)
-
+        response = self.safe_execute(self.article_service.save_article, article_id)
+        print(response.get('message', "Failed to save article.") if response else "Failed to save article.")
+    
 
     def _react_to_article(self, article_id):
+        article_id = self.safe_execute(get_valid_article_id)
         reaction = input("1. Like\n2. Dislike\nChoose reaction: ").strip()
         if reaction == '1':
             result = self.safe_execute(self.article_service.react_to_article, article_id, "like")

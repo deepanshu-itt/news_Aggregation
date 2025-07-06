@@ -1,8 +1,11 @@
 from utils import print_menu
 from news_api import NewsAPIClient
-from user_client.notification_service import NotificationService
+from services.notification_service import NotificationService
+from dto.news_api_dto import NewsApiDto
+from user_client.base_user_action import IUserAction
 
-class NotificationsMenu:
+
+class NotificationsMenu(IUserAction):
     def __init__(self, user_menu):
         self.notification_service: NotificationService = user_menu.notification_service
         self.api_client: NewsAPIClient = user_menu.api_client
@@ -79,8 +82,7 @@ class NotificationsMenu:
 
     def __get_enabled_categories(self):
         preferences = self.safe_execute(self.notification_service.get_user_preferences)
-        categories_response = self.safe_execute(self.api_client.make_request, 'GET', 
-                                            'user/categories', current_user=self.get_user())
+        categories_response = self.__get_categories_from_api()
         
         if (not preferences or not preferences.get('success') 
             or not categories_response or not categories_response.get('success')):
@@ -92,6 +94,15 @@ class NotificationsMenu:
                 for category_preferences in preferences['preferences'].get('category_preferences', [])}
         
         return categories, enabled, preferences
+
+
+    def __get_categories_from_api(self):
+        get_categories_dto = NewsApiDto(
+            method='GET',
+            endpoint='user/categories',
+            current_user=self.get_user()
+        )
+        return self.safe_execute(self.api_client.make_request, get_categories_dto)
 
 
     def _print_category_settings(self, categories, enabled):

@@ -1,21 +1,24 @@
 from repository.user_notifications import UserNotificationRepository
-from repository.saved_articles_repository import SavedArticleRepository
-from services.news_service import NewsService
 from repository.email_notification_repository import EmailNotificationRepository
 from repository.user_repository import UserRepository
 from models.user import User
 from repository.news_article_repository import NewsArticleRepository
+from utils.preferences_utils import (
+    merge_keywords_into_preferences,
+    remove_keywords_from_category,
+    remove_category_from_preferences,
+)
 
 user_notification_manager = UserNotificationRepository()
 
 
 class UserService:
+
     @staticmethod
     def get_user_profile(user_id):
         user_manager = UserRepository()
         user = user_manager.find_by_user_id(user_id)
         if user:
-            
             prefs = user_notification_manager.find_by_user_id(user_id)
             prefs_data = {
                 'category_preferences': prefs.category_preferences if prefs else []
@@ -29,7 +32,8 @@ class UserService:
             }}, 200
 
         return {"success": False, "message": "User not found."}, 404
-    
+
+
     @staticmethod
     def get_user_email_notifications(user_id):
         email_notification_manager = EmailNotificationRepository()
@@ -58,12 +62,11 @@ class UserService:
         if not user:
             return {"success": False, "message": "User not found."}, 404
 
-        
         if not already_data:
-           notification_prefs = UserService.create_preferences(user, category_name, category_preferences)
+            notification_prefs = UserService.create_preferences(user, category_name, category_preferences)
         else:
             notification_prefs = UserService.update_keywords(user, category_name, category_preferences)
-            
+
         if notification_prefs:
             return {"success": True, "message": "Preferences updated successfully."}, 200
 
@@ -79,77 +82,91 @@ class UserService:
                 "keywords": category_preferences
             }
         ]
-        
+
         return user_notification_manager.create_or_update(
             user.id, user.email, updated_preferences
         )
-    
-    
+
+
     @staticmethod
     def update_keywords(user: User, category_name: str, category_preferences):
         category_preferences = list(set(category_preferences))
-        already_data = user_notification_manager.find_by_user_id(user.id)
-        category_found = False
-        updated_preferences = []
+        existing_data = user_notification_manager.find_by_user_id(user.id)
 
-        for category in already_data.category_preferences:
-            if category['name'].lower() == category_name.lower():
-                category_found = True
-                existing_keywords = set(category.get('keywords', []))
-                new_keywords = existing_keywords.union(set(category_preferences))
-                category['keywords'] = list(new_keywords)
-                updated_preferences.append(category)
-            else:
-                updated_preferences.append(category)
-
-        if not category_found:
-            new_entry = {
-                "name": category_name,
-                "enabled": True,
-                "keywords": category_preferences
-            }
-            updated_preferences.append(new_entry)
+        updated_preferences = merge_keywords_into_preferences(
+            existing_data.category_preferences,
+            category_name,
+            category_preferences
+        )
 
         return user_notification_manager.create_or_update(
             user.id, user.email, updated_preferences
         )
+
 
     @staticmethod
     def remove_notification_keyword(user_id: int, category_name: str, keyword):
         user_manager = UserRepository()
-        user =  user_manager.find_by_user_id(user_id)
+        user = user_manager.find_by_user_id(user_id)
         if not user:
             return {"success": False, "message": "User not found"}, 404
 
-        return  user_manager.remove_notification_keyword(user.id, category_name, keyword)
+        return UserService.handle_preferences_updation(user.id, category_name, keyword)
 
 
     @staticmethod
-    def save_article(user_id, article_id):
-        success = NewsService.save_article_for_user(user_id, article_id)
-        if success:
-            return {"success": True, "message": "Article saved successfully."}, 200
-        return {"success": False, "message": "Failed to save article or already saved."}, 409
+    def handle_preferences_updation(userid, category_name, keyword=None):
+        if not keyword:
+            return UserService.handle_category_removal(userid, category_name)
+        else:
+            return UserService.handle_keyword_removal(userid, category_name, keyword)
 
 
     @staticmethod
-    def unsave_article(user_id, article_id):
-        save_article_maneger = SavedArticleRepository()
-        success = save_article_maneger.delete(user_id, article_id)
-        if success:
-            return {"success": True, "message": "Article unsaved successfully."}, 200
-        return {"success": False, "message": "Failed to unsave article."}, 404
+    def handle_category_removal(userid: int, category_name: str):
+        user_manager = UserRepository()
+        preferences_list = user_manager.fetch_user_preferences(userid)
+        updated_preferences = remove_category_from_preferences(preferences_list, category_name)
+
+        if len(updated_preferences) == len(preferences_list):
+            return {"success": False, "message": f"Category '{category_name}' not found"}, 400
+
+        user_manager.update_user_preferences(userid, updated_preferences)
+        return {"success": True, "message": f"Category '{category_name}' removed"}, 200
 
 
     @staticmethod
-    def get_user_saved_articles(user_id):
-        articles = NewsService.get_saved_articles_for_user(user_id)
-        return {"success": True, "articles": [single_article.__dict__ for single_article in articles]}, 200
-    
-    
+    def handle_keyword_not_removed(keyword, category_name, keyword_removed):
+        if not keyword_removed:
+            return {
+                "success": False,
+                "message": f"Keyword '{keyword}' not found in category '{category_name}'"
+            }, 400
+
+
+    @staticmethod
+    def handle_keyword_removal(userid: int, category_name: str, user_input_keywords):
+        user_manager = UserRepository()
+        preferences_list = user_manager.fetch_user_preferences(userid)
+
+        updated_preferences, keyword_removed = remove_keywords_from_category(
+            preferences_list, category_name, user_input_keywords
+        )
+
+        response = UserService.handle_keyword_not_removed(user_input_keywords, category_name, keyword_removed)
+        if not response:
+            user_manager.update_user_preferences(userid, updated_preferences)
+            response = {
+                "success": True,
+                "message": f"Keyword '{user_input_keywords}' removed from category '{category_name}'"
+            }, 200
+
+        return response
+
+
     @staticmethod
     def get_article_details(article_id):
         article_manager = NewsArticleRepository()
-        article =  article_manager.find_by_id(article_id)
+        article = article_manager.find_by_id(article_id)
         article_manager.update_article_view_count(article_id)
         return {"success": True, "article": article.to_dict()}, 200

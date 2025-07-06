@@ -4,6 +4,7 @@ from database.database import db
 from services.email_format_service import EmailSender
 from repository.category_repository import CategoryRepository
 
+
 class ArticleReportService:
     def __init__(self):
         self.repo = ReportArticleRepository()
@@ -41,7 +42,7 @@ class ArticleReportService:
 
     def is_threshold_breached(self, article_id, reason):
         article = self.repo.get_article_by_id(article_id)
-        if article.get("report_count") + 1 >= self.threshold:
+        if article.get("report_count") >= self.threshold:
             self.repo.hide_article(article_id)
             self._update_admin_article_hide_email(article_id, article.get("report_count") + 1)
 
