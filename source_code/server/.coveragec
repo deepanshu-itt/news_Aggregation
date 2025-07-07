@@ -1,0 +1,5 @@
+[run]
+include =
+    C:\Users\deepanshu.p\OneDrive - InTimeTec Visionsoft Pvt. Ltd.,\Desktop\Learn&Code\news_Aggregation\source_code\server\routes\*
+omit =
+    *
